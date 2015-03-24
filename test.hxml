@@ -1,0 +1,6 @@
+-cp src
+-lib hxdom
+-main starlight.tests.TestRunner
+ --interp
+#-D js-flatten
+#-js test.js
