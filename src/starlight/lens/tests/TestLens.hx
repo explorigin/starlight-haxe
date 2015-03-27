@@ -1,8 +1,10 @@
 package starlight.lens.tests;
 
 import starlight.lens.Lens;
+import starlight.lens.Lens;
+using VirtualElement.VirtualElementTools;
 
-class TestLens extends haxe.unit.TestCase {
+class TestLensElement extends haxe.unit.TestCase {
     public function testVoidGeneration() {
         var ve = Lens.element('br');
         assertEquals('<br>', ve.toHTML());
@@ -32,6 +34,9 @@ class TestLens extends haxe.unit.TestCase {
         var e = Lens.element;
 
         var ve = e('h1', {}, ['hi']);
+        assertEquals('<h1>hi</h1>', ve.toHTML());
+
+        var ve = e('h1', {}, 'hi');
         assertEquals('<h1>hi</h1>', ve.toHTML());
 
         var ve = e('h2', {"class": "text"}, [e('span', {"class": "header"}, ["Title"])]);

@@ -1,20 +1,24 @@
 package starlight.lens;
 
-import starlight.lens.VirtualElement.IVirtualElement;
 import starlight.lens.VirtualElement.VirtualElementChildren;
 import starlight.lens.VirtualElement.VirtualElementAttributes;
-import starlight.lens.VirtualElement.VoidVirtualElement;
-import starlight.lens.VirtualElement.StandardVirtualElement;
+import starlight.lens.VirtualElement.VirtualElement;
 import starlight.lens.VirtualElement.TextVirtualElement;
+import starlight.lens.VirtualElement.ElementUpdate;
+import starlight.lens.VirtualElement.ElementAction.*;
 
 using StringTools;
+using VirtualElement.VirtualElementTools;
 
 class Lens {
     static var parser = ~/((^|#|\.)([^#\.\[]+))|(\[.+\])/g;
     static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;  // Not the most efficient but EReg has some pretty severe restrictions.
-    static var singleTagElements = ~/^(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TRACK|WBR)$/;
 
-    public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):IVirtualElement {
+    public var pendingUpdates:Array<ElementUpdate> = [];
+
+    public function new() {}
+
+    public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
         var childArray:VirtualElementChildren;
 
         var tagName = 'div';
@@ -34,17 +38,28 @@ class Lens {
                     case 'Array': {
                         paramChildArray = cast attrStruct;
                     }
-                    default: throw "Invalid Type passed to Lens.element";
+                    default: throw "Invalid Type passed to Lens.element for attributes";
                 }
                 attrStruct = {};
             }
             case TObject: {
-                if (children != null) {
-                    paramChildArray = cast children;
-                } else {
-                    paramChildArray = new Array<Dynamic>();
+                switch(Type.typeof(children)) {
+                    case TClass(s): {
+                        switch(Type.getClassName(s)) {
+                            case 'String': {
+                                paramChildArray = new Array<Dynamic>();
+                                paramChildArray.push(children);
+                            }
+                            case 'Array': {
+                                paramChildArray = cast children;
+                            }
+                            default: throw "Invalid Type passed to Lens.element for children";
+                        }
+                    }
+                    case TNull: paramChildArray = new Array<Dynamic>();
+                    default: throw "Invalid Type passed to Lens.element for children";
                 }
-            };
+            }
             case TNull: {
                 attrStruct = {};
                 paramChildArray = new Array<Dynamic>();
@@ -81,13 +96,6 @@ class Lens {
             attrs.set('class', classes.join(" "));
         }
 
-        var isSingleTag = singleTagElements.match(tagName.toUpperCase());
-
-        var cell:Dynamic = switch(isSingleTag) {
-            case true: new VoidVirtualElement(tagName, new VirtualElementAttributes());
-            default: new StandardVirtualElement(tagName, new VirtualElementAttributes());
-        }
-
         for (attrName in Reflect.fields(attrStruct)) {
             var value = Reflect.field(attrStruct, attrName);
             if (attrName == classAttrName) {
@@ -102,10 +110,9 @@ class Lens {
         if (attrs.get('class') != null) {
             attrs.set('class', attrs.get('class').trim());
         }
-        cell.attrs = attrs;
+        var cell = new VirtualElement(tagName, attrs);
 
-
-        if (!isSingleTag && paramChildArray != null) {
+        if (paramChildArray != null) {
             childArray = cell.children;
             for (child in paramChildArray) {
                 if (Reflect.hasField(child, 'tag')) {

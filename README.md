@@ -5,6 +5,12 @@
  - static type-checking
  - offline-first architecture
 
+## Run tests
+
+    `haxe test.hxml`
+
+## Modules
+
 Starlight consists of a serious of modular components
 
 ## Lens
