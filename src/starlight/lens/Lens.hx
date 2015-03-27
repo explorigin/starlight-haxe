@@ -124,4 +124,64 @@ class Lens {
         }
         return cell;
     }
+
+    inline function appendUpdate(update:Array<ElementUpdate>) {
+        pendingUpdates = pendingUpdates.concat(update);
+    }
+
+    /* update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
+     * Finally, it will return the new `current`
+    */
+    public function update(next:VirtualElement, current:VirtualElement, ?parentId:Int, ?parentIndex:Int):VirtualElement {
+        // TODO: implement a keying algorithm for efficient reordering
+        var index = 0;
+        var larger:VirtualElementChildren;
+        var smaller:VirtualElementChildren;
+        var normalOrder = true;
+
+
+        if (current == null) {
+            // If there is nothing to compare, just create it.
+            appendUpdate(next.getUpdates(AddElement, parentId, parentIndex));
+            larger = next.children;
+            smaller = new VirtualElementChildren();
+        } else if (next == null) {
+            // If there is nothing there, just remove it.
+            appendUpdate(current.getUpdates(RemoveElement, parentId, parentIndex));
+            return null;
+        } else if (next.tag != current.tag) {
+            // Remove the old element
+            appendUpdate(current.getUpdates(RemoveElement, parentId, parentIndex));
+            // Update the new element
+            appendUpdate(next.getUpdates(AddElement, parentId, parentIndex));
+            larger = next.children;
+            smaller = new VirtualElementChildren();
+        } else {
+            if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
+                // Update the current element
+                appendUpdate(next.getUpdates(UpdateElement, parentId, parentIndex));
+            }
+
+            if (next.children.length > current.children.length) {
+                larger = next.children;
+                smaller = current.children;
+            } else {
+                larger = current.children;
+                smaller = next.children;
+                normalOrder = false;
+            }
+
+        }
+
+        for (child in larger) {
+            if (normalOrder) {
+                update(child, smaller[index], next.id, index);
+            } else {
+                update(smaller[index], child, next.id, index);
+            }
+            index++;
+        }
+
+        return next;
+    }
 }

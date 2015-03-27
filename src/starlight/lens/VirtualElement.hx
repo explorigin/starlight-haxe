@@ -117,6 +117,40 @@ class VirtualElement {
             return '<$tag$attrString>$childrenString</$tag>';
         }
     }
+
+    public function getUpdates(action:ElementAction, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
+        var updates:Array<ElementUpdate> = [];
+
+        switch(action) {
+            case AddElement: {
+                updates.push({
+                    elementId:id,
+                    tag:tag,
+                    attrs:attrs,
+                    textValue:textValue,
+                    newParent:parentId,
+                    newIndex:parentIndex
+                });
+            }
+            case UpdateElement: {
+                updates.push({
+                    elementId:id,
+                    tag:tag,
+                    attrs:attrs,
+                    textValue:textValue
+                });
+            }
+            case RemoveElement: {
+                updates.push({
+                    elementId:id,
+                    oldParent:parentId,
+                    oldIndex:parentIndex
+                });
+            }
+            default: null;
+        }
+        return updates;
+    }
 }
 
 class TextVirtualElement extends VirtualElement {
