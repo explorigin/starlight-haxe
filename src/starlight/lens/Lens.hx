@@ -18,11 +18,11 @@ class Lens {
 
     public function new() {}
 
+    /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
         var childArray:VirtualElementChildren;
 
         var tagName = 'div';
-        var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
         var attrs = new VirtualElementAttributes();
         var classes = new Array<String>();
         var paramChildArray:Array<Dynamic>;
@@ -67,6 +67,7 @@ class Lens {
             default: throw 'Invalid Type passed to Lens.element: $attrStruct';
         }
 
+        var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
         var keepGoing = parser.match(signature);
 
         while(keepGoing) {
@@ -129,7 +130,8 @@ class Lens {
         pendingUpdates = pendingUpdates.concat(update);
     }
 
-    /* update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
+    /*
+     * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
     public function update(next:VirtualElement, current:VirtualElement, ?parentId:Int, ?parentIndex:Int):VirtualElement {

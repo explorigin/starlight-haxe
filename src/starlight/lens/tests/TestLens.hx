@@ -5,18 +5,30 @@ import starlight.lens.Lens;
 using VirtualElement.VirtualElementTools;
 
 class TestLensElement extends haxe.unit.TestCase {
+    function assertVoidHTMLEquals(control:String, variable:String) {
+        var varElements = variable.substr(1, variable.length-2).split(' ');
+        var conElements = control.substr(1, variable.length-2).split(' ');
+        assertEquals(varElements[0], conElements[0]);
+        if (varElements.length > 1) {
+            assertEquals(varElements[varElements.length-1], conElements[conElements.length-1]);
+
+            for (el in varElements)
+                assertTrue(conElements.indexOf(el) != -1);
+        }
+    }
+
     public function testVoidGeneration() {
         var ve = Lens.element('br');
-        assertEquals('<br>', ve.toHTML());
+        assertVoidHTMLEquals('<br>', ve.toHTML());
 
         var ve = Lens.element('input', {"class": "text"});
-        assertEquals('<input class="text">', ve.toHTML());
+        assertVoidHTMLEquals('<input class="text">', ve.toHTML());
 
         var ve = Lens.element('input[type=checkbox]', {"class": "text", "checked": true});
-        assertEquals('<input class="text" type="checkbox" checked>', ve.toHTML());
+        assertVoidHTMLEquals('<input type="checkbox" class="text" checked>', ve.toHTML());
 
         var ve = Lens.element('input#id.header', {"data-bind": "value: text"});
-        assertEquals('<input id="id" class="header" data-bind="value: text">', ve.toHTML());
+        assertVoidHTMLEquals('<input id="id" class="header" data-bind="value: text">', ve.toHTML());
     }
 
     public function testStandardTagGeneration() {
@@ -109,6 +121,7 @@ class TestLensUpdate extends haxe.unit.TestCase {
         assertAddedUpdate(final.tag, final.attrs, null, null, l.pendingUpdates[0]);
         assertAddedUpdate('#text', null, l.pendingUpdates[0].elementId, 0, l.pendingUpdates[1], 'Header');
     }
+
     public function testElementAttributeChange() {
         var l = new Lens();
 
