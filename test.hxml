@@ -1,5 +1,10 @@
 -cp src
--lib hxdom
 -main starlight.tests.TestRunner
 --interp
-# -js test.js
+
+--next
+
+-cp src
+-debug
+-main starlight.tests.TestRunner
+-js test.js
