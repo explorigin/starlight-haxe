@@ -6,5 +6,6 @@
 
 -cp src
 -debug
+-D js-es5
 -main starlight.tests.TestRunner
 -js test.js
