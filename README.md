@@ -1,19 +1,68 @@
-# Starlight is a web framework built with Haxe.  It aims to be a solid solution for larger web applications by providing:
+# Starlight
 
- - isomorphic app rendering
- - code-sharing between server and client components
- - static type-checking
- - offline-first architecture
+With Javascript, you can have...
+
+- isomorphic app rendering
+- code-sharing between server and client components
+- static type-checking
+
+...but you can only pick a few of these at a time.  Starlight gives you all these things to provide a solid platform for large web applications.  Starlight is built with a Javascript-like language called [Haxe](https://www.haxe.org).  In addition to the above features, Haxe offers...
+
+- dead-code elimination
+- Support for various server-side technology stacks (PHP, Python, NodeJS, Java or Neko)
 
 ## Run tests
 
-    `haxe test.hxml`
+To ensure that your platform can run Starlight correctly, run tests before developing for a target platform.
+
+    haxe test.hxml
+
+Be sure to open `test.html` in your target web browsers to ensure that the browser components work properly.
+
+(Starlight is in early development and hence neko is the only supported server target.  This will change before an alpha release.)
 
 ## Modules
 
-Starlight consists of a serious of modular components
+Starlight consists of a set of modular components to handle:
 
-## Lens
+- storage and sync
+- view-rendering and updating
+- browser-to-server and server-to-server communication
 
-Lens is the View portion of Starlight.  It provides a way to define views, attach events and build components.
+### Lens
 
+Lens is the View portion of Starlight.  It provides a way to define views, attach events and build components.  It is lightweight and can be used as a standalone analogue for [KnockoutJS](https://www.knockoutjs.com) or [React](https://www.facebook.com/react).
+
+#### Example
+
+```Haxe
+class ViewModel extends Lens {
+    var title = "Starlight Demo"
+    var clickCount = 0;
+
+    function handleClick(evt) {
+        clickCount++;
+    }
+
+    public override function view() {
+        return [
+            e('header.title', if (clickCount > 0) '$title - clicked $clickCount times.' else title),
+            e('section', [
+                e('button', {onclick: handleClick}, 'Click Me!')
+            ])
+        ];
+    }
+}
+
+var vm = Lens.apply(new ViewModel());
+```
+
+### Payload
+
+Payload manages storage and syncing between the front-end and back-end.
+
+(Under consideration: https://github.com/hoodiehq/wip-hoodie-store-on-pouchdb#dream-api)
+
+### Elevator
+
+Elevator provides communication in various forms between the server and browser.
