@@ -103,96 +103,61 @@ class TestLensUpdate extends haxe.unit.TestCase {
     }
 
     public function testElementCreation() {
-        var l = new Lens();
-
         var next = e('h2', {"class": "test"}, "Header");
 
-        assertEquals(0, l.pendingUpdates.length);
-        var final = l.update(next, null);
-
-        // Our return value should always equal `next`
-        assertTrue(final.veEquals(next));
-        assertEquals(1, final.children.length);
-        assertTrue(final.children[0].veEquals(new VirtualElement.TextVirtualElement('Header')));
+        var pendingUpdates = Lens.update(next, null);
 
         // There should be updates that detail the transition steps.
-        assertEquals(2, l.pendingUpdates.length);
+        assertEquals(2, pendingUpdates.length);
 
-        assertAddedUpdate(final.tag, final.attrs, null, null, l.pendingUpdates[0]);
-        assertAddedUpdate('#text', null, l.pendingUpdates[0].elementId, 0, l.pendingUpdates[1], 'Header');
+        assertAddedUpdate(next.tag, next.attrs, null, null, pendingUpdates[0]);
+        assertAddedUpdate('#text', null, pendingUpdates[0].elementId, 0, pendingUpdates[1], 'Header');
     }
 
     public function testElementAttributeChange() {
-        var l = new Lens();
-
         var current = e('h1');
         var next = e('h1', {"class": "test"});
 
-        assertEquals(0, l.pendingUpdates.length);
-        var final = l.update(next, current);
-
-        // Our return value should always equal `next`
-        assertTrue(final.veEquals(next));
-        assertEquals(0, final.children.length);
+        var pendingUpdates = Lens.update(next, current);
 
         // There should be updates that detail the transition steps.
-        assertEquals(1, l.pendingUpdates.length);
-        assertEquals(final.tag, l.pendingUpdates[0].tag);
-        assertTrue(final.attrs.attrEquals(l.pendingUpdates[0].attrs));
+        assertEquals(1, pendingUpdates.length);
+        assertEquals(next.tag, pendingUpdates[0].tag);
+        assertTrue(next.attrs.attrEquals(pendingUpdates[0].attrs));
     }
 
     public function testElementRemoveChild() {
-        var l = new Lens();
-
         var current = e('h1', {"class": "test"}, "Header");
         var next = e('h1', {"class": "test"});
 
-        assertEquals(0, l.pendingUpdates.length);
-        var final = l.update(next, current);
-
-        // Our return value should always equal `next`
-        assertTrue(final.veEquals(next));
-        assertEquals(0, final.children.length);
+        var pendingUpdates = Lens.update(next, current);
 
         // There should be updates that detail the transition steps.
-        assertEquals(1, l.pendingUpdates.length);
-        assertRemovedUpdate(current.children[0].id, final.id, 0, l.pendingUpdates[0]);
+        assertEquals(1, pendingUpdates.length);
+        assertRemovedUpdate(current.children[0].id, next.id, 0, pendingUpdates[0]);
     }
 
     public function testElementAddChild() {
-        var l = new Lens();
-
         var current = e('h1', {"class": "test"});
         var next = e('h1', {"class": "test"}, "Header");
 
-        assertEquals(0, l.pendingUpdates.length);
-        var final = l.update(next, current);
-
-        // Our return value should always equal `next`
-        assertTrue(final.veEquals(next));
-        assertEquals(1, final.children.length);
-        assertTrue(final.children[0].veEquals(new VirtualElement.TextVirtualElement('Header')));
+        var pendingUpdates = Lens.update(next, current);
 
         // There should be updates that detail the transition steps.
-        assertEquals(1, l.pendingUpdates.length);
-        assertAddedUpdate('#text', null, final.id, 0, l.pendingUpdates[0], 'Header');
+        assertEquals(1, pendingUpdates.length);
+        assertAddedUpdate('#text', null, next.id, 0, pendingUpdates[0], 'Header');
     }
 
     public function testElementReplacement() {
-        var l = new Lens();
-
         var current = e('h1');
         var next = e('h2');
 
-        assertEquals(0, l.pendingUpdates.length);
-        var final = l.update(next, current);
-
-        // Our return value should always equal `next`
-        assertEquals(next.tag, final.tag);
+        var pendingUpdates = Lens.update(next, current);
 
         // There should be updates that detail the transition steps.
-        assertEquals(2, l.pendingUpdates.length);
-        assertRemovedUpdate(current.id, null, null, l.pendingUpdates[0]);
+        assertEquals(2, pendingUpdates.length);
+        assertRemovedUpdate(current.id, null, null, pendingUpdates[0]);
 
-        assertEquals('h2', l.pendingUpdates[1].tag);
-    }}
+        assertEquals('h2', pendingUpdates[1].tag);
+    }
+}

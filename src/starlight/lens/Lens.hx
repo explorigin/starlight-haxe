@@ -14,9 +14,7 @@ class Lens {
     static var parser = ~/((^|#|\.)([^#\.\[]+))|(\[.+\])/g;
     static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;  // Not the most efficient but EReg has some pretty severe restrictions.
 
-    public var pendingUpdates:Array<ElementUpdate> = [];
-
-    public function new() {}
+    public function new() {};
 
     /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
@@ -126,42 +124,37 @@ class Lens {
         return cell;
     }
 
-    inline function appendUpdate(update:Array<ElementUpdate>) {
-        pendingUpdates = pendingUpdates.concat(update);
-    }
-
     /*
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    public function update(next:VirtualElement, current:VirtualElement, ?parentId:Int, ?parentIndex:Int):VirtualElement {
+    public static function update(next:VirtualElement, current:VirtualElement, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var index = 0;
         var larger:VirtualElementChildren;
         var smaller:VirtualElementChildren;
         var normalOrder = true;
-
+        var updates:Array<ElementUpdate> = [];
 
         if (current == null) {
             // If there is nothing to compare, just create it.
-            appendUpdate(next.getUpdates(AddElement, parentId, parentIndex));
+            updates = updates.concat(next.getUpdates(AddElement, parentId, parentIndex));
             larger = next.children;
             smaller = new VirtualElementChildren();
         } else if (next == null) {
             // If there is nothing there, just remove it.
-            appendUpdate(current.getUpdates(RemoveElement, parentId, parentIndex));
-            return null;
+            return current.getUpdates(RemoveElement, parentId, parentIndex);
         } else if (next.tag != current.tag) {
             // Remove the old element
-            appendUpdate(current.getUpdates(RemoveElement, parentId, parentIndex));
+            updates = updates.concat(current.getUpdates(RemoveElement, parentId, parentIndex));
             // Update the new element
-            appendUpdate(next.getUpdates(AddElement, parentId, parentIndex));
+            updates = updates.concat(next.getUpdates(AddElement, parentId, parentIndex));
             larger = next.children;
             smaller = new VirtualElementChildren();
         } else {
             if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
                 // Update the current element
-                appendUpdate(next.getUpdates(UpdateElement, parentId, parentIndex));
+                updates = updates.concat(next.getUpdates(UpdateElement, parentId, parentIndex));
             }
 
             if (next.children.length > current.children.length) {
@@ -176,14 +169,16 @@ class Lens {
         }
 
         for (child in larger) {
+            var small = if (smaller.length > index) smaller[index] else null;
+
             if (normalOrder) {
-                update(child, smaller[index], next.id, index);
+                updates = updates.concat(update(child, small, next.id, index));
             } else {
-                update(smaller[index], child, next.id, index);
+                updates = updates.concat(update(small, child, next.id, index));
             }
             index++;
         }
 
-        return next;
+        return updates;
     }
 }
