@@ -3,7 +3,7 @@ package starlight.lens.tests;
 import starlight.lens.Lens;
 using VirtualElement.VirtualElementTools;
 
-class TestLensElement extends haxe.unit.TestCase {
+class TestLensElement extends starlight.tests.TestCase {
     function assertVoidHTMLEquals(control:String, variable:String) {
         var varElements = variable.substr(1, variable.length-2).split(' ');
         var conElements = control.substr(1, variable.length-2).split(' ');
@@ -12,7 +12,7 @@ class TestLensElement extends haxe.unit.TestCase {
             assertEquals(varElements[varElements.length-1], conElements[conElements.length-1]);
 
             for (el in varElements)
-                assertTrue(conElements.indexOf(el) != -1);
+                assertContains(conElements, el);
         }
     }
 
@@ -75,7 +75,7 @@ class TestLensElement extends haxe.unit.TestCase {
 }
 
 
-class TestLensUpdate extends haxe.unit.TestCase {
+class TestLensUpdate extends starlight.tests.TestCase {
     var e = Lens.element;
 
     function assertRemovedUpdate(id, oldParent, oldIndex, update) {
@@ -183,7 +183,7 @@ class NestedViewModel extends Lens {
     }
 }
 
-class TestLensViewModel extends haxe.unit.TestCase {
+class TestLensViewModel extends starlight.tests.TestCase {
     var vm:Lens;
 
     public override function tearDown() {
