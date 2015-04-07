@@ -10,9 +10,22 @@ import starlight.lens.VirtualElement.ElementAction.*;
 using StringTools;
 using VirtualElement.VirtualElementTools;
 
+#if js
+    typedef ElementType = js.html.Element;
+#else
+    typedef ElementType = Dynamic;
+#end
+
+
 class Lens {
     static var parser = ~/((^|#|\.)([^#\.\[]+))|(\[.+\])/g;
-    static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;  // Not the most efficient but EReg has some pretty severe restrictions.
+    static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;      //  Not the most efficient but EReg has some pretty severe restrictions.
+    static var elementPropertyAttributes = ~/^(list|style|form|type|width|height)$/i;
+
+
+    var e = element;  //  A shortcut for easy access in the `view` method.
+    var root:ElementType;
+    public var elementCache = new haxe.ds.IntMap<ElementType>();
 
     public function new() {};
 
@@ -109,6 +122,7 @@ class Lens {
         if (attrs.get('class') != null) {
             attrs.set('class', attrs.get('class').trim());
         }
+
         var cell = new VirtualElement(tagName, attrs);
 
         if (paramChildArray != null) {
@@ -138,23 +152,53 @@ class Lens {
 
         if (current == null) {
             // If there is nothing to compare, just create it.
-            updates = updates.concat(next.getUpdates(AddElement, parentId, parentIndex));
+            updates.push({
+                action:AddElement,
+                elementId:next.id,
+                tag:next.tag,
+                attrs:next.attrs,
+                textValue:next.textValue,
+                newParent:parentId,
+                newIndex:parentIndex
+            });
             larger = next.children;
             smaller = new VirtualElementChildren();
         } else if (next == null) {
             // If there is nothing there, just remove it.
-            return current.getUpdates(RemoveElement, parentId, parentIndex);
+            return [{
+                action:RemoveElement,
+                elementId:current.id,
+                oldParent:parentId,
+                oldIndex:parentIndex
+            }];
         } else if (next.tag != current.tag) {
             // Remove the old element
-            updates = updates.concat(current.getUpdates(RemoveElement, parentId, parentIndex));
+            updates.push({
+                action:RemoveElement,
+                elementId:current.id,
+                oldParent:parentId,
+                oldIndex:parentIndex
+            });
             // Update the new element
-            updates = updates.concat(next.getUpdates(AddElement, parentId, parentIndex));
+            updates.push({
+                action:AddElement,
+                elementId:next.id,
+                tag:next.tag,
+                attrs:next.attrs,
+                textValue:next.textValue
+            });
             larger = next.children;
             smaller = new VirtualElementChildren();
         } else {
             if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
                 // Update the current element
-                updates = updates.concat(next.getUpdates(UpdateElement, parentId, parentIndex));
+                updates.push({
+                    action:UpdateElement,
+                    elementId:next.id,
+                    tag:next.tag,
+                    attrs:next.attrs,
+                    textValue:next.textValue
+                });
             }
 
             if (next.children.length > current.children.length) {
@@ -180,5 +224,70 @@ class Lens {
         }
 
         return updates;
+    }
+
+    public function view():Array<VirtualElement> {
+        return [new TextVirtualElement(Type.getClassName(cast this) + ' does have have a view() method.')];
+    }
+
+    public function processUpdates() {
+        var updates:Array<ElementUpdate> = [];
+        for (ve in view()) {
+            updates = updates.concat(update(ve, null));
+        }
+        consumeUpdates(updates);
+    }
+
+    public static function apply(vm:Lens, ?root:ElementType) {
+#if js
+        if (root == null) {
+            root = js.Browser.document.body;
+        }
+#end
+        vm.root = root;
+        vm.processUpdates();
+    }
+
+    public static function setAttributes(element:ElementType, attrs:VirtualElementAttributes):Void {
+        // TODO: Consider denormalizing element.tagName to avoid a DOM call.
+        for (attrName in attrs.keys()) {
+            var value = attrs.get(attrName);
+            // TODO - potential speed optimization. elementPropertiesAttributes might do better broken out to separate conditions
+            if (Reflect.hasField(element, attrName) && !elementPropertyAttributes.match(attrName)) {
+                if (element.tagName != "input" || Reflect.field(element, attrName) != value) {
+                    Reflect.setField(element, attrName, value);
+                }
+            } else {
+                element.setAttribute(attrName, value);
+            }
+        }
+    }
+
+    public function consumeUpdates(updates:Array<ElementUpdate>) {
+        while (updates.length > 0) {
+            var elementUpdate = updates.shift();
+#if js
+            switch(elementUpdate.action) {
+                case AddElement: {
+                    var element:js.html.DOMElement;
+                    if (elementUpdate.tag == '#text') {
+                        element = cast js.Browser.document.createTextNode(elementUpdate.textValue);
+                    } else {
+                        element = js.Browser.document.createElement(elementUpdate.tag);
+                        setAttributes(cast element, elementUpdate.attrs);
+                    }
+                    elementCache.set(elementUpdate.elementId, cast element);
+
+                    if (elementCache.exists(elementUpdate.newParent)) {
+                        var parent = elementCache.get(elementUpdate.newParent);
+                        parent.appendChild(element);
+                    } else {
+                        root.appendChild(element);
+                    }
+                }
+                default: trace('unsupported action');
+            }
+#end
+        }
     }
 }

@@ -2,6 +2,7 @@ package starlight.lens;
 
 import haxe.ds.StringMap;
 
+using Lambda;
 using StringTools;
 using VirtualElement.VirtualElementTools;
 
@@ -17,6 +18,7 @@ enum ElementAction {
 }
 
 typedef ElementUpdate = {
+    action:ElementAction,
     elementId:Int,
     ?tag:String,
     ?attrs:VirtualElementAttributes,
@@ -52,7 +54,7 @@ class VirtualElementTools {
             }
         }
 
-        return ([for (k in a.keys()) true].length == [for (k in b.keys()) true].length);
+        return a.array().length == b.array().length;
     }
 
     static public function veEquals(a:VirtualElement, b:VirtualElement):Bool {
@@ -116,40 +118,6 @@ class VirtualElement {
             var childrenString:String = children.toHTML();
             return '<$tag$attrString>$childrenString</$tag>';
         }
-    }
-
-    public function getUpdates(action:ElementAction, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
-        var updates:Array<ElementUpdate> = [];
-
-        switch(action) {
-            case AddElement: {
-                updates.push({
-                    elementId:id,
-                    tag:tag,
-                    attrs:attrs,
-                    textValue:textValue,
-                    newParent:parentId,
-                    newIndex:parentIndex
-                });
-            }
-            case UpdateElement: {
-                updates.push({
-                    elementId:id,
-                    tag:tag,
-                    attrs:attrs,
-                    textValue:textValue
-                });
-            }
-            case RemoveElement: {
-                updates.push({
-                    elementId:id,
-                    oldParent:parentId,
-                    oldIndex:parentIndex
-                });
-            }
-            default: null;
-        }
-        return updates;
     }
 }
 

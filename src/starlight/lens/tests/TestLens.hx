@@ -1,7 +1,6 @@
 package starlight.lens.tests;
 
 import starlight.lens.Lens;
-import starlight.lens.Lens;
 using VirtualElement.VirtualElementTools;
 
 class TestLensElement extends haxe.unit.TestCase {
@@ -159,5 +158,78 @@ class TestLensUpdate extends haxe.unit.TestCase {
         assertRemovedUpdate(current.id, null, null, pendingUpdates[0]);
 
         assertEquals('h2', pendingUpdates[1].tag);
+    }
+}
+
+class BasicViewModel extends Lens {
+    var title = "Starlight Demo";
+    public var clickCount = 0;
+
+    public override function view() {
+        return [
+            e('header.title', if (clickCount > 0) '$title - clicked $clickCount times.' else title)
+        ];
+    }
+}
+
+class NestedViewModel extends Lens {
+    public override function view() {
+        return [
+            e('header.title', [
+                e('span.brand', "Starlight"),
+                "&nbsp;Demo",
+            ])
+        ];
+    }
+}
+
+class TestLensViewModel extends haxe.unit.TestCase {
+    var vm:Lens;
+
+    public override function tearDown() {
+        if (vm != null) {
+            var i = vm.elementCache.keys();
+            while(i.hasNext()) {
+                var key = i.next();
+#if js
+                var el = vm.elementCache.get(key);
+                vm.elementCache.remove(key);
+
+                try {
+                    el.parentElement.removeChild(el);
+                } catch (e:Dynamic) {
+                    // We don't care
+                }
+#end
+            }
+        }
+    }
+
+
+    function assertElementTextEquals(text:String, selector:String) {
+#if js
+        var el = js.Browser.document.querySelector(selector);
+        if (el == null) {
+            assertEquals(selector, null);
+        }
+        assertEquals(text, el.innerHTML);
+#else
+        // Can't test on this platform but we add an assert to prevent this test from failing.
+        assertTrue(true);
+#end
+    }
+
+    public function testBasicVMCreation() {
+        vm = new BasicViewModel();
+        Lens.apply(vm);
+
+        assertElementTextEquals("Starlight Demo", '.title');
+    }
+
+    public function testNestedVMCreation() {
+        vm = new NestedViewModel();
+        Lens.apply(vm);
+
+        assertElementTextEquals("Starlight", '.title .brand');
     }
 }
