@@ -150,6 +150,7 @@ class Lens {
         for (index in 0...cast Math.max(nextState.length, currentState.length)) {
             var next = nextState[index];
             var current = currentState[index];
+            var useNext = true;
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
@@ -170,7 +171,7 @@ class Lens {
                     oldParent:parentId,
                     oldIndex:parentIndex
                 }];
-            } else if (next.tag != current.tag) {
+            } else if (next.tag != current.tag || next.textValue != current.textValue) {
                 // Remove the old element
                 updates.push({
                     action:RemoveElement,
@@ -184,26 +185,27 @@ class Lens {
                     elementId:next.id,
                     tag:next.tag,
                     attrs:next.attrs,
-                    textValue:next.textValue
+                    textValue:next.textValue,
+                    newParent:parentId,
+                    newIndex:parentIndex
+                });
+            } else if (!next.attrs.attrEquals(current.attrs)) {
+                // Update the current element
+                updates.push({
+                    action:UpdateElement,
+                    elementId:next.id,
+                    tag:next.tag,
+                    attrs:next.attrs
                 });
             } else {
-                if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
-                    // Update the current element
-                    updates.push({
-                        action:UpdateElement,
-                        elementId:next.id,
-                        tag:next.tag,
-                        attrs:next.attrs,
-                        textValue:next.textValue
-                    });
-                }
+                useNext = false;
             }
 
             updates = updates.concat(
                 update(
                     if (next == null) [] else next.children,
                     if (current == null) [] else current.children,
-                    next.id,
+                    if (useNext) next.id else current.id,
                     index
                 )
             );
@@ -217,7 +219,9 @@ class Lens {
     }
 
     public function processUpdates() {
-        consumeUpdates(update(view(), currentState));
+        var nextState = view();
+        consumeUpdates(update(nextState, currentState));
+        currentState = nextState;
     }
 
     public static function apply(vm:Lens, ?root:ElementType) {
@@ -265,6 +269,13 @@ class Lens {
                         parent.appendChild(element);
                     } else {
                         root.appendChild(element);
+                    }
+                }
+                case RemoveElement: {
+                    if (elementCache.exists(elementUpdate.elementId)) {
+                        var element = elementCache.get(elementUpdate.elementId);
+                        element.parentNode.removeChild(element);
+                        elementCache.remove(elementUpdate.elementId);
                     }
                 }
                 default: trace('unsupported action');

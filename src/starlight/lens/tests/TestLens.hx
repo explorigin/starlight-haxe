@@ -133,7 +133,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
-        assertRemovedUpdate(current.children[0].id, next.id, 0, pendingUpdates[0]);
+        assertRemovedUpdate(current.children[0].id, current.id, 0, pendingUpdates[0]);
     }
 
     public function testElementAddChild() {
@@ -144,7 +144,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
-        assertAddedUpdate('#text', null, next.id, 0, pendingUpdates[0], 'Header');
+        assertAddedUpdate('#text', null, current.id, 0, pendingUpdates[0], 'Header');
     }
 
     public function testElementReplacement() {
@@ -231,5 +231,16 @@ class TestLensViewModel extends starlight.tests.TestCase {
         Lens.apply(vm);
 
         assertElementTextEquals("Starlight", '.title .brand');
+    }
+
+    public function testVMUpdateTextNode() {
+        vm = new BasicViewModel();
+        Lens.apply(vm);
+        var vm = cast vm;
+
+        assertElementTextEquals("Starlight Demo", '.title');
+        vm.clickCount++;
+        vm.processUpdates();
+        assertElementTextEquals("Starlight Demo - clicked 1 times.", '.title');
     }
 }
