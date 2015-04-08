@@ -26,6 +26,7 @@ class Lens {
     var e = element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
     public var elementCache = new haxe.ds.IntMap<ElementType>();
+    public var currentState = new Array<VirtualElement>();
 
     public function new() {};
 
@@ -142,85 +143,70 @@ class Lens {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    public static function update(next:VirtualElement, current:VirtualElement, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
+    public static function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
-        var index = 0;
-        var larger:VirtualElementChildren;
-        var smaller:VirtualElementChildren;
-        var normalOrder = true;
         var updates:Array<ElementUpdate> = [];
 
-        if (current == null) {
-            // If there is nothing to compare, just create it.
-            updates.push({
-                action:AddElement,
-                elementId:next.id,
-                tag:next.tag,
-                attrs:next.attrs,
-                textValue:next.textValue,
-                newParent:parentId,
-                newIndex:parentIndex
-            });
-            larger = next.children;
-            smaller = new VirtualElementChildren();
-        } else if (next == null) {
-            // If there is nothing there, just remove it.
-            return [{
-                action:RemoveElement,
-                elementId:current.id,
-                oldParent:parentId,
-                oldIndex:parentIndex
-            }];
-        } else if (next.tag != current.tag) {
-            // Remove the old element
-            updates.push({
-                action:RemoveElement,
-                elementId:current.id,
-                oldParent:parentId,
-                oldIndex:parentIndex
-            });
-            // Update the new element
-            updates.push({
-                action:AddElement,
-                elementId:next.id,
-                tag:next.tag,
-                attrs:next.attrs,
-                textValue:next.textValue
-            });
-            larger = next.children;
-            smaller = new VirtualElementChildren();
-        } else {
-            if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
-                // Update the current element
+        for (index in 0...cast Math.max(nextState.length, currentState.length)) {
+            var next = nextState[index];
+            var current = currentState[index];
+
+            if (current == null) {
+                // If there is nothing to compare, just create it.
                 updates.push({
-                    action:UpdateElement,
+                    action:AddElement,
+                    elementId:next.id,
+                    tag:next.tag,
+                    attrs:next.attrs,
+                    textValue:next.textValue,
+                    newParent:parentId,
+                    newIndex:parentIndex
+                });
+            } else if (next == null) {
+                // If there is nothing there, just remove it.
+                return [{
+                    action:RemoveElement,
+                    elementId:current.id,
+                    oldParent:parentId,
+                    oldIndex:parentIndex
+                }];
+            } else if (next.tag != current.tag) {
+                // Remove the old element
+                updates.push({
+                    action:RemoveElement,
+                    elementId:current.id,
+                    oldParent:parentId,
+                    oldIndex:parentIndex
+                });
+                // Update the new element
+                updates.push({
+                    action:AddElement,
                     elementId:next.id,
                     tag:next.tag,
                     attrs:next.attrs,
                     textValue:next.textValue
                 });
-            }
-
-            if (next.children.length > current.children.length) {
-                larger = next.children;
-                smaller = current.children;
             } else {
-                larger = current.children;
-                smaller = next.children;
-                normalOrder = false;
+                if (!next.attrs.attrEquals(current.attrs) || next.textValue != current.textValue) {
+                    // Update the current element
+                    updates.push({
+                        action:UpdateElement,
+                        elementId:next.id,
+                        tag:next.tag,
+                        attrs:next.attrs,
+                        textValue:next.textValue
+                    });
+                }
             }
 
-        }
-
-        for (child in larger) {
-            var small = if (smaller.length > index) smaller[index] else null;
-
-            if (normalOrder) {
-                updates = updates.concat(update(child, small, next.id, index));
-            } else {
-                updates = updates.concat(update(small, child, next.id, index));
-            }
-            index++;
+            updates = updates.concat(
+                update(
+                    if (next == null) [] else next.children,
+                    if (current == null) [] else current.children,
+                    next.id,
+                    index
+                )
+            );
         }
 
         return updates;
@@ -231,11 +217,7 @@ class Lens {
     }
 
     public function processUpdates() {
-        var updates:Array<ElementUpdate> = [];
-        for (ve in view()) {
-            updates = updates.concat(update(ve, null));
-        }
-        consumeUpdates(updates);
+        consumeUpdates(update(view(), currentState));
     }
 
     public static function apply(vm:Lens, ?root:ElementType) {
