@@ -80,8 +80,8 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
     function assertRemovedUpdate(id, oldParent, oldIndex, update) {
         assertEquals(id, update.elementId);
-        assertEquals(oldParent, update.oldParent);
-        assertEquals(oldIndex, update.oldIndex);
+        assertEquals(null, update.oldParent);
+        assertEquals(null, update.oldIndex);
         assertEquals(null, update.newParent);
         assertEquals(null, update.newIndex);
     }
@@ -166,9 +166,13 @@ class BasicViewModel extends Lens {
     public var clickCount = 0;
 
     public override function view() {
-        return [
+        var elements = [
             e('header.title', if (clickCount > 0) '$title - clicked $clickCount times.' else title)
         ];
+        if (clickCount == 0) {
+            elements.push(e('span.extra', 'This text will disappear.'));
+        }
+        return elements;
     }
 }
 
@@ -236,7 +240,7 @@ class TestLensViewModel extends starlight.tests.TestCase {
     public function testVMUpdateTextNode() {
         vm = new BasicViewModel();
         Lens.apply(vm);
-        var vm = cast vm;
+        var vm:BasicViewModel = cast vm;
 
         assertElementTextEquals("Starlight Demo", '.title');
         vm.clickCount++;

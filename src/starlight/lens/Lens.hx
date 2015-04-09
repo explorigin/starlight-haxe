@@ -165,19 +165,16 @@ class Lens {
                 });
             } else if (next == null) {
                 // If there is nothing there, just remove it.
-                return [{
+                updates.push({
                     action:RemoveElement,
-                    elementId:current.id,
-                    oldParent:parentId,
-                    oldIndex:parentIndex
-                }];
+                    elementId:current.id
+                });
+                continue;
             } else if (next.tag != current.tag || next.textValue != current.textValue) {
                 // Remove the old element
                 updates.push({
                     action:RemoveElement,
-                    elementId:current.id,
-                    oldParent:parentId,
-                    oldIndex:parentIndex
+                    elementId:current.id
                 });
                 // Update the new element
                 updates.push({
