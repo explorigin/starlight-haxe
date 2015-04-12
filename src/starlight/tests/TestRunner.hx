@@ -11,7 +11,7 @@ class TestRunner {
         r.add(new starlight.lens.tests.TestVirtualElement());
         r.add(new starlight.lens.tests.TestLens.TestLensElement());
         r.add(new starlight.lens.tests.TestLens.TestLensUpdate());
-        r.add(new starlight.lens.tests.TestLens.TestLensViewModel());
+        r.add(new starlight.lens.tests.TestLens.TestLensConsumeUpdates());
 
         r.run();
 

@@ -28,7 +28,11 @@ class Lens {
     public var elementCache = new haxe.ds.IntMap<ElementType>();
     public var currentState = new Array<VirtualElement>();
 
-    public function new() {};
+    public function new() {
+#if js
+        this.root = js.Browser.document.body;
+#end
+    };
 
     /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
@@ -188,11 +192,18 @@ class Lens {
                 });
             } else if (!next.attrs.attrEquals(current.attrs)) {
                 // Update the current element
+                var attrDiff = next.attrs;
+                for (key in current.attrs.keys()) {
+                    if (attrDiff.exists(key)) {
+                        continue;
+                    }
+                    attrDiff.set(key, null);
+                }
+
                 updates.push({
                     action:UpdateElement,
                     elementId:next.id,
-                    tag:next.tag,
-                    attrs:next.attrs
+                    attrs:attrDiff
                 });
             } else {
                 useNext = false;
@@ -222,12 +233,9 @@ class Lens {
     }
 
     public static function apply(vm:Lens, ?root:ElementType) {
-#if js
-        if (root == null) {
-            root = js.Browser.document.body;
+        if (root != null) {
+            vm.root = root;
         }
-#end
-        vm.root = root;
         vm.processUpdates();
     }
 
@@ -246,26 +254,48 @@ class Lens {
         }
     }
 
+    function insertElement(element:ElementType, parent:ElementType, index:Int) {
+#if js
+        var nextSibling = parent.childNodes[index];
+        if (nextSibling != null) {
+            parent.insertBefore(element, nextSibling);
+        } else {
+            parent.appendChild(element);
+        }
+#end
+    }
+
     public function consumeUpdates(updates:Array<ElementUpdate>) {
         while (updates.length > 0) {
             var elementUpdate = updates.shift();
 #if js
             switch(elementUpdate.action) {
                 case AddElement: {
-                    var element:js.html.DOMElement;
+                    var element:ElementType;
+                    var parent:ElementType;
+
                     if (elementUpdate.tag == '#text') {
                         element = cast js.Browser.document.createTextNode(elementUpdate.textValue);
                     } else {
-                        element = js.Browser.document.createElement(elementUpdate.tag);
+                        element = cast js.Browser.document.createElement(elementUpdate.tag);
                         setAttributes(cast element, elementUpdate.attrs);
                     }
                     elementCache.set(elementUpdate.elementId, cast element);
 
+
                     if (elementCache.exists(elementUpdate.newParent)) {
-                        var parent = elementCache.get(elementUpdate.newParent);
-                        parent.appendChild(element);
+                        parent = elementCache.get(elementUpdate.newParent);
                     } else {
-                        root.appendChild(element);
+                        parent = root;
+                    }
+                    insertElement(element, parent, elementUpdate.newIndex);
+                }
+                case UpdateElement: {
+                    if (elementCache.exists(elementUpdate.elementId)) {
+                        var element = elementCache.get(elementUpdate.elementId);
+                        setAttributes(cast element, elementUpdate.attrs);
+                    } else {
+                        trace('Tried to update a non-existant element: $elementUpdate');
                     }
                 }
                 case RemoveElement: {
@@ -273,6 +303,15 @@ class Lens {
                         var element = elementCache.get(elementUpdate.elementId);
                         element.parentNode.removeChild(element);
                         elementCache.remove(elementUpdate.elementId);
+                    }
+                }
+                case MoveElement: {
+                    var parent = elementCache.get(elementUpdate.newParent);
+                    var element = elementCache.get(elementUpdate.elementId);
+                    if (parent != null && element != null) {
+                        insertElement(element, parent, elementUpdate.newIndex);
+                    } else {
+                        trace('Tried to move a non-existant element or to a non-existant element: $elementUpdate');
                     }
                 }
                 default: trace('unsupported action');

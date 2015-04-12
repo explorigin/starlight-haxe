@@ -13,6 +13,16 @@ class TestCase extends haxe.unit.TestCase {
         }
     }
 
+    function assertHas(m:Map<String, Dynamic>, key:String, ?c : PosInfos ) {
+        currentTest.done = true;
+        if (!m.exists(key)){
+            currentTest.success = false;
+            currentTest.error   = 'expected $m to have key "$key".';
+            currentTest.posInfos = c;
+            throw currentTest;
+        }
+    }
+
     override function assertTrue( b:Bool, ?c : PosInfos ) : Void {
         return assertEquals(true, b, c);
     }
