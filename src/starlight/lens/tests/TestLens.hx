@@ -197,6 +197,15 @@ class FrontendTestCase extends starlight.tests.TestCase {
         assertTrue(true);
 #end
     }
+
+    function assertElementValue(selector, value) {
+#if js
+        assertEquals(untyped js.Browser.document.querySelector(selector).value, value);
+#else
+        assertTrue(true);  // Just make the test not complain.
+#end
+    }
+
 }
 
 class TestLensConsumeUpdates extends FrontendTestCase {
@@ -326,18 +335,10 @@ class TestLensConsumeUpdates extends FrontendTestCase {
     }
 
     public function testInputValueUpdate() {
-        function checkValue(selector, value) {
-#if js
-            assertEquals(cast(js.Browser.document.querySelector(selector), js.html.InputElement).value, value);
-#else
-            assertTrue(true);  // Just make the test not complain.
-#end
-        }
-
         var vm = new Lens();
         var updates = populateBasicElements(vm);
 
-        checkValue('.form', 'initial');
+        assertElementValue('.form', 'initial');
 
         var inputAttrs = new VirtualElement.VirtualElementAttributes();
         inputAttrs.set("value", "result");
@@ -348,6 +349,63 @@ class TestLensConsumeUpdates extends FrontendTestCase {
             attrs:inputAttrs
         }];
         vm.consumeUpdates(updates);
-        checkValue('.form', 'result');
+        assertElementValue('.form', 'result');
+    }
+
+    public function testSelectAddtionWithValueSet() {
+        var vm = new Lens();
+        var updates = populateBasicElements(vm);
+
+        var attrs = new VirtualElement.VirtualElementAttributes();
+        attrs.set("value", "Two");
+
+        updates = [{
+            action:AddElement,
+            elementId:4,
+            tag:'select',
+            attrs:attrs,
+            textValue:"",
+            newParent:1,
+            newIndex:1
+        },
+        {
+            action:AddElement,
+            elementId:5,
+            tag:'option',
+            attrs:new VirtualElement.VirtualElementAttributes(),
+            textValue:"",
+            newParent:4,
+            newIndex:0
+        },
+        {
+            action:AddElement,
+            elementId:6,
+            tag:'#text',
+            attrs:new VirtualElement.VirtualElementAttributes(),
+            textValue:"One",
+            newParent:5,
+            newIndex:0
+        },
+        {
+            action:AddElement,
+            elementId:7,
+            tag:'option',
+            attrs:new VirtualElement.VirtualElementAttributes(),
+            textValue:"",
+            newParent:4,
+            newIndex:0
+        },
+        {
+            action:AddElement,
+            elementId:8,
+            tag:'#text',
+            attrs:new VirtualElement.VirtualElementAttributes(),
+            textValue:"Two",
+            newParent:7,
+            newIndex:0
+        }];
+        vm.consumeUpdates(updates);
+
+        assertElementValue('select', 'Two');
     }
 }
