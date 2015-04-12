@@ -264,6 +264,26 @@ class TestLensConsumeUpdates extends FrontendTestCase {
 #end
     }
 
+    public function testElementUpdate() {
+        var vm = new Lens();
+        var updates = populateBasicElements(vm);
+        assertElementTextEquals("Starlight Demo", '.title');
+
+        var attrs = new VirtualElement.VirtualElementAttributes();
+        attrs.set("class", "title hidden");
+
+        updates = [{
+            action:UpdateElement,
+            elementId:1,
+            attrs:attrs
+        }];
+        vm.consumeUpdates(updates);
+
+        assertElementTextEquals("Starlight Demo", '.title');
+        assertElementTextEquals("Starlight Demo", '.hidden');
+        assertElementTextEquals("Starlight Demo", '.title.hidden');
+    }
+
     public function testElementMove() {
         function checkParent(selector, parentKey, index) {
             var parent:ElementType = elementCache.get(parentKey);
