@@ -270,7 +270,7 @@ class Lens {
         }];
     }
 
-    public function processUpdates() {
+    public function render() {
         var nextState = view();
         consumeUpdates(update(nextState, currentState));
         currentState = nextState;
@@ -280,7 +280,7 @@ class Lens {
         if (root != null) {
             vm.root = root;
         }
-        vm.processUpdates();
+        vm.render();
     }
 
     public static function setAttributes(element:ElementType, attrs:VirtualElementAttributes):Void {
