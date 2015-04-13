@@ -99,7 +99,13 @@ class Lens {
                 attrStruct = {};
                 paramChildArray = new Array<Dynamic>();
             }
-            default: throw 'Invalid Type passed to Lens.element: $attrStruct';
+            default: {
+#if js
+                throw 'Invalid Type passed to Lens.element for tag attributes';
+#else
+                throw 'Invalid Type passed to Lens.element for tag attributes: $attrStruct';
+#end
+            }
         }
 
         var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
@@ -332,8 +338,10 @@ class Lens {
                     if (elementCache.exists(elementUpdate.elementId)) {
                         var element = elementCache.get(elementUpdate.elementId);
                         setAttributes(cast element, elementUpdate.attrs);
+#if !js
                     } else {
                         trace('Tried to update a non-existant element: $elementUpdate');
+#end
                     }
                 }
                 case RemoveElement: {
@@ -348,8 +356,10 @@ class Lens {
                     var element = elementCache.get(elementUpdate.elementId);
                     if (parent != null && element != null) {
                         insertElement(element, parent, elementUpdate.newIndex);
+#if !js
                     } else {
                         trace('Tried to move a non-existant element or to a non-existant element: $elementUpdate');
+#end
                     }
                 }
                 default: trace('unsupported action');
