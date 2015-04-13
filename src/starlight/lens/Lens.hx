@@ -3,12 +3,30 @@ package starlight.lens;
 import starlight.lens.VirtualElement.VirtualElementChildren;
 import starlight.lens.VirtualElement.VirtualElementAttributes;
 import starlight.lens.VirtualElement.VirtualElement;
-import starlight.lens.VirtualElement.TextVirtualElement;
-import starlight.lens.VirtualElement.ElementUpdate;
-import starlight.lens.VirtualElement.ElementAction.*;
 
+#if !js
 using StringTools;
+#end
 using VirtualElement.VirtualElementTools;
+
+enum ElementAction {
+    RemoveElement;
+    AddElement;
+    UpdateElement;
+    MoveElement;
+}
+
+typedef ElementUpdate = {
+    action:ElementAction,
+    elementId:Int,
+    ?tag:String,
+    ?attrs:VirtualElementAttributes,
+    ?textValue:String,
+    ?oldParent:Int,
+    ?oldIndex:Int,
+    ?newParent:Int,
+    ?newIndex:Int
+}
 
 #if js
     typedef ElementType = js.html.Element;
@@ -22,6 +40,7 @@ class Lens {
     static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;      //  Not the most efficient but EReg has some pretty severe restrictions.
     static var elementPropertyAttributes = ~/^(list|style|form|type|width|height)$/i;
 
+    static var nodeCounter = 0;
 
     var e = element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
@@ -36,10 +55,10 @@ class Lens {
 
     /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
-        var childArray:VirtualElementChildren;
-
         var tagName = 'div';
         var attrs = new VirtualElementAttributes();
+        var childArray:VirtualElementChildren = new VirtualElementChildren();
+
         var classes = new Array<String>();
         var paramChildArray:Array<Dynamic>;
 
@@ -125,22 +144,36 @@ class Lens {
             }
         }
         if (attrs.get('class') != null) {
+#if js
+            attrs.set('class', untyped __js__("attrs.get('class').trim()"));
+#else
             attrs.set('class', attrs.get('class').trim());
+#end
         }
 
-        var cell = new VirtualElement(tagName, attrs);
-
         if (paramChildArray != null) {
-            childArray = cell.children;
             for (child in paramChildArray) {
-                if (Reflect.hasField(child, 'tag')) {
-                    childArray.push(child);
+                if (Type.getClass(child) == String) {
+                    // Add a string as a TextNode
+                    childArray.push({
+                        id:nodeCounter++,
+                        tag:VirtualElementTools.TEXT_TAG,
+                        children: [],
+                        textValue: child
+                    });
                 } else {
-                    childArray.push(new TextVirtualElement(cast child));
+                    childArray.push(child);
                 }
             }
         }
-        return cell;
+
+        return {
+            id:nodeCounter++,
+            tag:tagName,
+            isVoid:tagName.isVoidTag(),
+            attrs:attrs,
+            children:childArray
+        };
     }
 
     /*
@@ -223,7 +256,12 @@ class Lens {
     }
 
     public function view():Array<VirtualElement> {
-        return [new TextVirtualElement(Type.getClassName(cast this) + ' does have have a view() method.')];
+        return [{
+            id:nodeCounter++,
+            tag:VirtualElementTools.TEXT_TAG,
+            children: [],
+            textValue:Type.getClassName(cast this) + ' does have have a view() method.'
+        }];
     }
 
     public function processUpdates() {

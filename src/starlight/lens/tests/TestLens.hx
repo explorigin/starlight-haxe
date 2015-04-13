@@ -1,8 +1,9 @@
 package starlight.lens.tests;
 
 import starlight.lens.Lens;
-import starlight.lens.VirtualElement.ElementUpdate;
-import starlight.lens.VirtualElement.ElementAction.*;
+import starlight.lens.VirtualElement.VirtualElementAttributes;
+import starlight.lens.Lens.ElementUpdate;
+import starlight.lens.Lens.ElementAction.*;
 
 using VirtualElement.VirtualElementTools;
 
@@ -89,7 +90,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         assertEquals(null, update.newIndex);
     }
 
-    function assertAddedUpdate(attrs:VirtualElement.VirtualElementAttributes, update:VirtualElement.ElementUpdate) {
+    function assertAddedUpdate(attrs:VirtualElementAttributes, update:ElementUpdate) {
         if (attrs != null)
             assertTrue(attrs.attrEquals(update.attrs));
     }
