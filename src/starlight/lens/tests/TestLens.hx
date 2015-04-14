@@ -104,7 +104,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
             assertTrue(attrEquals(attrs, update.attrs));
     }
 
-#if pluginsupport
+#if plugin-support
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 
