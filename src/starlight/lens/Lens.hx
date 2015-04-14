@@ -94,12 +94,27 @@ class Lens {
                 }
             }
             case TNull: {
-                attrStruct = {};
                 paramChildArray = new Array<Dynamic>();
+                attrStruct = {};
+            }
+            case TEnum(e): {
+                throw 'Elements can\'t set attributes to enum: $e';
+            }
+            case TFunction: {
+                // TODO - This should run the function and reclassify it through this switch statement as a child.
+                paramChildArray = new Array<Dynamic>();
+                var child = children();
+                switch(Type.getClassName(child)) {
+                    case 'String': paramChildArray.push(children);
+                    case 'Array': paramChildArray = cast children;
+                    default: paramChildArray.push('' + child);
+                }
+                attrStruct = {};
             }
             default: {
                 paramChildArray = new Array<Dynamic>();
                 paramChildArray.push('' + children);
+                attrStruct = {};
             }
         }
 
