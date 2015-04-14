@@ -305,7 +305,11 @@ class Lens {
                     Reflect.setField(element, attrName, value);
                 }
             } else {
-                element.setAttribute(attrName, value);
+                if (value == null) {
+                    element.removeAttribute(attrName);
+                } else {
+                    element.setAttribute(attrName, value);
+                }
             }
         }
     }
@@ -339,10 +343,10 @@ class Lens {
                     elementCache.set(elementUpdate.elementId, cast element);
 
 
-                    if (elementCache.exists(elementUpdate.newParent)) {
-                        parent = elementCache.get(elementUpdate.newParent);
-                    } else {
+                    if (elementUpdate.newParent == null) {
                         parent = root;
+                    } else {
+                        parent = elementCache.get(elementUpdate.newParent);
                     }
                     insertElement(element, parent, elementUpdate.newIndex);
                 }
