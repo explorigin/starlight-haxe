@@ -103,17 +103,17 @@ class Lens {
             case TFunction: {
                 // TODO - This should run the function and reclassify it through this switch statement as a child.
                 paramChildArray = new Array<Dynamic>();
-                var child = children();
+                var child = attrStruct();
                 switch(Type.getClassName(child)) {
-                    case 'String': paramChildArray.push(children);
-                    case 'Array': paramChildArray = cast children;
+                    case 'String': paramChildArray.push(child);
+                    case 'Array': paramChildArray = cast child;
                     default: paramChildArray.push('' + child);
                 }
                 attrStruct = {};
             }
             default: {
                 paramChildArray = new Array<Dynamic>();
-                paramChildArray.push('' + children);
+                paramChildArray.push('' + attrStruct);
                 attrStruct = {};
             }
         }
