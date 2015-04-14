@@ -104,10 +104,11 @@ class TestLensUpdate extends starlight.tests.TestCase {
             assertTrue(attrEquals(attrs, update.attrs));
     }
 
+#if pluginsupport
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 
-        var pendingUpdates = Lens.update([next], []);
+        var pendingUpdates = new Lens().update([next], []);
 
         // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
@@ -120,7 +121,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1');
         var next = e('h1', {"class": "test"});
 
-        var pendingUpdates = Lens.update([next], [current]);
+        var pendingUpdates = new Lens().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -131,7 +132,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"});
         var next = e('h1');
 
-        var pendingUpdates = Lens.update([next], [current]);
+        var pendingUpdates = new Lens().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -143,7 +144,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"}, "Header");
         var next = e('h1', {"class": "test"});
 
-        var pendingUpdates = Lens.update([next], [current]);
+        var pendingUpdates = new Lens().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -154,7 +155,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"});
         var next = e('h1', {"class": "test"}, "Header");
 
-        var pendingUpdates = Lens.update([next], [current]);
+        var pendingUpdates = new Lens().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -165,7 +166,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1');
         var next = e('h2');
 
-        var pendingUpdates = Lens.update([next], [current]);
+        var pendingUpdates = new Lens().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
@@ -173,6 +174,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         assertEquals('h2', pendingUpdates[1].tag);
     }
+#end
 }
 
 

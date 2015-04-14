@@ -196,11 +196,19 @@ class Lens {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    public static function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
+    public function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
         var currentStateItems = currentState.length;
         var nextStateItems = nextState.length;
+
+        inline function place(func, upd) {
+#if plugin-support
+            updates.push(upd);
+#else
+            func(upd);
+#end
+        }
 
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
             var next = if (index < nextStateItems) nextState[index] else null;
@@ -208,7 +216,7 @@ class Lens {
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
-                updates.push({
+                place(addElement, {
                     action:AddElement,
                     elementId:next.id,
                     tag:next.tag,
@@ -217,21 +225,22 @@ class Lens {
                     newParent:parentId,
                     newIndex:index
                 });
+
             } else if (next == null) {
                 // If there is nothing there, just remove it.
-                updates.push({
+                place(removeElement, {
                     action:RemoveElement,
                     elementId:current.id
                 });
                 continue;
             } else if (next.tag != current.tag || next.textValue != current.textValue) {
                 // Remove the old element
-                updates.push({
+                place(removeElement, {
                     action:RemoveElement,
                     elementId:current.id
                 });
                 // Update the new element
-                updates.push({
+                place(addElement, {
                     action:AddElement,
                     elementId:next.id,
                     tag:next.tag,
@@ -264,7 +273,7 @@ class Lens {
 
                 if (!attrsAreEqual) {
                     // Update the current element
-                    updates.push({
+                    place(updateElement, {
                         action:UpdateElement,
                         elementId:current.id,
                         attrs:attrDiff
@@ -275,6 +284,7 @@ class Lens {
                 next.id = current.id;
             }
 
+#if plugin-support
             updates = updates.concat(
                 update(
                     if (next == null) [] else next.children,
@@ -282,12 +292,19 @@ class Lens {
                     next.id
                 )
             );
-
+#else
+            update(
+                if (next == null) [] else next.children,
+                if (current == null) [] else current.children,
+                next.id
+            );
+#end
         }
 
         return updates;
     }
 
+    @:keep
     public function view():Array<VirtualElement> {
         return [{
             id:nodeCounter++,
@@ -299,7 +316,11 @@ class Lens {
 
     public function render() {
         var nextState = view();
+#if plugin-support
         consumeUpdates(update(nextState, currentState));
+#else
+        update(nextState, currentState);
+#end
         currentState = nextState;
     }
 
@@ -329,7 +350,7 @@ class Lens {
         }
     }
 
-    function insertElement(element:ElementType, parent:ElementType, index:Int) {
+    function injectElement(element:ElementType, parent:ElementType, index:Int) {
 #if js
         var nextSibling = parent.childNodes[index];
         if (nextSibling != null) {
@@ -340,62 +361,60 @@ class Lens {
 #end
     }
 
+    inline function addElement(update:ElementUpdate) {
+#if js
+        var element:ElementType;
+        var parent:ElementType;
+
+        if (update.tag == '#text') {
+            element = cast js.Browser.document.createTextNode(update.textValue);
+        } else {
+            element = cast js.Browser.document.createElement(update.tag);
+            setAttributes(cast element, update.attrs);
+        }
+        elementCache.set(update.elementId, cast element);
+
+        if (update.newParent == null) {
+            parent = root;
+        } else {
+            parent = elementCache.get(update.newParent);
+        }
+        injectElement(element, parent, update.newIndex);
+#end
+    }
+
+    inline function updateElement(update:ElementUpdate) {
+#if js
+        setAttributes(cast elementCache.get(update.elementId), update.attrs);
+#end
+    }
+
+    inline function removeElement(update:ElementUpdate) {
+#if js
+        var element = elementCache.get(update.elementId);
+        element.parentNode.removeChild(element);
+        elementCache.remove(update.elementId);
+#end
+    }
+
+    inline function moveElement(update:ElementUpdate) {
+#if js
+        injectElement(
+            elementCache.get(update.elementId),
+            elementCache.get(update.newParent),
+            update.newIndex);
+#end
+    }
+
     public function consumeUpdates(updates:Array<ElementUpdate>) {
         while (updates.length > 0) {
             var elementUpdate = updates.shift();
-#if js
             switch(elementUpdate.action) {
-                case AddElement: {
-                    var element:ElementType;
-                    var parent:ElementType;
-
-                    if (elementUpdate.tag == '#text') {
-                        element = cast js.Browser.document.createTextNode(elementUpdate.textValue);
-                    } else {
-                        element = cast js.Browser.document.createElement(elementUpdate.tag);
-                        setAttributes(cast element, elementUpdate.attrs);
-                    }
-                    elementCache.set(elementUpdate.elementId, cast element);
-
-
-                    if (elementUpdate.newParent == null) {
-                        parent = root;
-                    } else {
-                        parent = elementCache.get(elementUpdate.newParent);
-                    }
-                    insertElement(element, parent, elementUpdate.newIndex);
-                }
-                case UpdateElement: {
-                    if (elementCache.exists(elementUpdate.elementId)) {
-                        var element = elementCache.get(elementUpdate.elementId);
-                        setAttributes(cast element, elementUpdate.attrs);
-#if !js
-                    } else {
-                        trace('Tried to update a non-existant element: $elementUpdate');
-#end
-                    }
-                }
-                case RemoveElement: {
-                    if (elementCache.exists(elementUpdate.elementId)) {
-                        var element = elementCache.get(elementUpdate.elementId);
-                        element.parentNode.removeChild(element);
-                        elementCache.remove(elementUpdate.elementId);
-                    }
-                }
-                case MoveElement: {
-                    var parent = elementCache.get(elementUpdate.newParent);
-                    var element = elementCache.get(elementUpdate.elementId);
-                    if (parent != null && element != null) {
-                        insertElement(element, parent, elementUpdate.newIndex);
-#if !js
-                    } else {
-                        trace('Tried to move a non-existant element or to a non-existant element: $elementUpdate');
-#end
-                    }
-                }
-                default: trace('unsupported action');
+                case AddElement: addElement(elementUpdate);
+                case UpdateElement: updateElement(elementUpdate);
+                case RemoveElement: removeElement(elementUpdate);
+                case MoveElement: moveElement(elementUpdate);
             }
-#end
         }
     }
 }

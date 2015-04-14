@@ -13,9 +13,9 @@ With Javascript, you can have...
 
 ## Run tests
 
-To ensure that your platform can run Starlight correctly, run tests before developing for a target platform.
+To ensure that your platform can run Starlight correctly, tests will run automatically when you build `Starlight`.
 
-    haxe test.hxml
+    haxe build.hxml
 
 Be sure to open `test.html` in your target web browsers to ensure that the browser components work properly.
 

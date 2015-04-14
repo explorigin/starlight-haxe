@@ -1,0 +1,45 @@
+-cp src
+#-D plugin-support
+-main starlight.tests.TestRunner
+--interp
+
+--next
+
+-cp src
+-debug
+-D js-es5
+-dce full
+#-D plugin-support
+-main starlight.tests.TestRunner
+-js test.js
+
+--next
+
+-cp src
+-debug
+-D js-es5
+-dce full
+-D plugin-support
+-main starlight.tests.TestRunner
+-js test-plugin-support.js
+
+--next
+
+-cp src
+-cp src/examples
+-D js-es5
+-dce full
+-debug
+-main todomvc.App
+-js src/examples/todomvc/js/app.js
+
+--next
+
+-cp src
+-cp src/examples
+-D js-es5
+-dce full
+-D plugin-support
+-debug
+-main todomvc.App
+-js src/examples/todomvc/js/app-plugin-support.js
