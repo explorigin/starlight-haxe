@@ -2,8 +2,6 @@ package starlight.lens;
 
 import haxe.ds.StringMap;
 
-using Lambda;
-
 typedef VirtualElementAttributes = StringMap<String>;
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {
@@ -68,15 +66,5 @@ class VirtualElementTools {
             return true;
         }
         return false;
-    }
-
-    static public function attrEquals(a:VirtualElementAttributes, b:VirtualElementAttributes):Bool {
-        for (key in a.keys()) {
-            if (a.get(key) != b.get(key)) {
-                return false;
-            }
-        }
-
-        return a.array().length == b.array().length;
     }
 }

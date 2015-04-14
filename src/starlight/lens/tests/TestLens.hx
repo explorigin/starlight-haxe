@@ -5,6 +5,7 @@ import starlight.lens.VirtualElement.VirtualElementAttributes;
 import starlight.lens.Lens.ElementUpdate;
 import starlight.lens.Lens.ElementAction.*;
 
+using Lambda;
 using VirtualElement.VirtualElementTools;
 
 class TestLensElement extends starlight.tests.TestCase {
@@ -82,17 +83,25 @@ class TestLensElement extends starlight.tests.TestCase {
 class TestLensUpdate extends starlight.tests.TestCase {
     var e = Lens.element;
 
-    function assertRemovedUpdate(id, oldParent, oldIndex, update) {
+    static function attrEquals(a:VirtualElementAttributes, b:VirtualElementAttributes):Bool {
+        for (key in a.keys()) {
+            if (a.get(key) != b.get(key)) {
+                return false;
+            }
+        }
+
+        return a.array().length == b.array().length;
+    }
+
+    function assertRemovedUpdate(id, update) {
         assertEquals(id, update.elementId);
-        assertEquals(null, update.oldParent);
-        assertEquals(null, update.oldIndex);
         assertEquals(null, update.newParent);
         assertEquals(null, update.newIndex);
     }
 
     function assertAddedUpdate(attrs:VirtualElementAttributes, update:ElementUpdate) {
         if (attrs != null)
-            assertTrue(attrs.attrEquals(update.attrs));
+            assertTrue(attrEquals(attrs, update.attrs));
     }
 
     public function testElementCreation() {
@@ -115,7 +124,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
-        assertTrue(next.attrs.attrEquals(pendingUpdates[0].attrs));
+        assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
     }
 
     public function testElementAttributeRemove() {
@@ -138,7 +147,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
-        assertRemovedUpdate(current.children[0].id, current.id, 0, pendingUpdates[0]);
+        assertRemovedUpdate(current.children[0].id, pendingUpdates[0]);
     }
 
     public function testElementAddChild() {
@@ -160,7 +169,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
-        assertRemovedUpdate(current.id, null, null, pendingUpdates[0]);
+        assertRemovedUpdate(current.id, pendingUpdates[0]);
 
         assertEquals('h2', pendingUpdates[1].tag);
     }

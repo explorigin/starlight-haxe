@@ -22,8 +22,6 @@ typedef ElementUpdate = {
     ?tag:String,
     ?attrs:VirtualElementAttributes,
     ?textValue:String,
-    ?oldParent:Int,
-    ?oldIndex:Int,
     ?newParent:Int,
     ?newIndex:Int
 }
@@ -100,11 +98,8 @@ class Lens {
                 paramChildArray = new Array<Dynamic>();
             }
             default: {
-#if js
-                throw 'Invalid Type passed to Lens.element for tag attributes';
-#else
-                throw 'Invalid Type passed to Lens.element for tag attributes: $attrStruct';
-#end
+                paramChildArray = new Array<Dynamic>();
+                paramChildArray.push('' + children);
             }
         }
 
@@ -186,14 +181,15 @@ class Lens {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    public static function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int, ?parentIndex:Int):Array<ElementUpdate> {
+    public static function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
+        var currentStateItems = currentState.length;
+        var nextStateItems = nextState.length;
 
-        for (index in 0...cast Math.max(nextState.length, currentState.length)) {
-            var next = nextState[index];
-            var current = currentState[index];
-            var useNext = true;
+        for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
+            var next = if (index < nextStateItems) nextState[index] else null;
+            var current = if (index < currentStateItems) currentState[index] else null;
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
@@ -204,7 +200,7 @@ class Lens {
                     attrs:next.attrs,
                     textValue:next.textValue,
                     newParent:parentId,
-                    newIndex:parentIndex
+                    newIndex:index
                 });
             } else if (next == null) {
                 // If there is nothing there, just remove it.
@@ -227,35 +223,51 @@ class Lens {
                     attrs:next.attrs,
                     textValue:next.textValue,
                     newParent:parentId,
-                    newIndex:parentIndex
+                    newIndex:index
                 });
-            } else if (!next.attrs.attrEquals(current.attrs)) {
-                // Update the current element
-                var attrDiff = next.attrs;
+            } else if (next.tag != VirtualElementTools.TEXT_TAG) {
+                var attrDiff = new VirtualElementAttributes();
+                var attrsAreEqual = true;
+
                 for (key in current.attrs.keys()) {
-                    if (attrDiff.exists(key)) {
-                        continue;
+                    var val;
+                    if (next.attrs.exists(key)) {
+                        val = next.attrs.get(key);
+                    } else {
+                        val = null;
+                        attrsAreEqual = false;
                     }
-                    attrDiff.set(key, null);
+                    attrDiff.set(key, val);
                 }
 
-                updates.push({
-                    action:UpdateElement,
-                    elementId:next.id,
-                    attrs:attrDiff
-                });
+                for (key in next.attrs.keys()) {
+                    if (!attrDiff.exists(key)) {
+                        attrDiff.set(key, next.attrs.get(key));
+                        attrsAreEqual = false;
+                    }
+                }
+
+                if (!attrsAreEqual) {
+                    // Update the current element
+                    updates.push({
+                        action:UpdateElement,
+                        elementId:current.id,
+                        attrs:attrDiff
+                    });
+                }
+                next.id = current.id;
             } else {
-                useNext = false;
+                next.id = current.id;
             }
 
             updates = updates.concat(
                 update(
                     if (next == null) [] else next.children,
                     if (current == null) [] else current.children,
-                    if (useNext) next.id else current.id,
-                    index
+                    next.id
                 )
             );
+
         }
 
         return updates;

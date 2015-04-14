@@ -78,20 +78,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         assertFalse('a'.isTextTag());
     }
 
-    public function testAttrEquals() {
-        var a = new VirtualElementAttributes();
-        var b = new VirtualElementAttributes();
-
-        assertTrue(a.attrEquals(b));
-
-        b.set('key', 'value');
-        assertFalse(a.attrEquals(b));
-        assertFalse(b.attrEquals(a));
-
-        a.set('key', 'value');
-        assertTrue(a.attrEquals(b));
-    }
-
     public function testChildrenEquals() {
         var a = new VirtualElementChildren();
         var b = new VirtualElementChildren();
