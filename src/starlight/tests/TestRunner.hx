@@ -17,7 +17,7 @@ class TestRunner {
 
 #if js
         var body = js.Browser.document.body;
-        untyped __js__("setTimeout(function() { body.scrollTop = body.scrollHeight; }, 0)");
+        untyped __js__("setTimeout(function() { body.scrollTop = body.scrollHeight; }, 10)");
 #end
     }
 

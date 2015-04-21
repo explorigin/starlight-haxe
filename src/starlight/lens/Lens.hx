@@ -203,7 +203,7 @@ class Lens {
         var nextStateItems = nextState.length;
 
         inline function place(func, upd) {
-#if plugin-support
+#if pluginSupport
             updates.push(upd);
 #else
             func(upd);
@@ -213,6 +213,7 @@ class Lens {
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
             var next = if (index < nextStateItems) nextState[index] else null;
             var current = if (index < currentStateItems) currentState[index] else null;
+            var changingSelectValue = false;
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
@@ -225,6 +226,8 @@ class Lens {
                     newParent:parentId,
                     newIndex:index
                 });
+
+                changingSelectValue = next.tag == 'select' && next.attrs.exists('value');
 
             } else if (next == null) {
                 // If there is nothing there, just remove it.
@@ -249,6 +252,9 @@ class Lens {
                     newParent:parentId,
                     newIndex:index
                 });
+
+                changingSelectValue = next.tag == 'select' && next.attrs.exists('value');
+
             } else if (next.tag != VirtualElementTools.TEXT_TAG) {
                 var attrDiff = new VirtualElementAttributes();
                 var attrsAreEqual = true;
@@ -284,7 +290,7 @@ class Lens {
                 next.id = current.id;
             }
 
-#if plugin-support
+#if pluginSupport
             updates = updates.concat(
                 update(
                     if (next == null) [] else next.children,
@@ -299,6 +305,15 @@ class Lens {
                 next.id
             );
 #end
+            if (changingSelectValue) {
+                var attrs = new VirtualElementAttributes();
+                attrs.set('value', next.attrs.get('value'));
+                place(updateElement, {
+                    action:UpdateElement,
+                    elementId:next.id,
+                    attrs:attrs
+                });
+            }
         }
 
         return updates;
@@ -316,7 +331,7 @@ class Lens {
 
     public function render() {
         var nextState = view();
-#if plugin-support
+#if pluginSupport
         consumeUpdates(update(nextState, currentState));
 #else
         update(nextState, currentState);
@@ -336,8 +351,9 @@ class Lens {
         for (attrName in attrs.keys()) {
             var value = attrs.get(attrName);
             // TODO - potential speed optimization. elementPropertiesAttributes might do better broken out to separate conditions
-            if (Reflect.hasField(element, attrName) && !elementPropertyAttributes.match(attrName)) {
-                if (element.tagName != "input" || Reflect.field(element, attrName) != value) {
+            // FIXME - Normally we would use Reflect but it doesn't compile correctly such that firefox would work.
+            if (untyped __js__("attrName in element") && !elementPropertyAttributes.match(attrName)) {
+                if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
                     Reflect.setField(element, attrName, value);
                 }
             } else {

@@ -104,7 +104,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
             assertTrue(attrEquals(attrs, update.attrs));
     }
 
-#if plugin-support
+#if pluginSupport
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 
@@ -173,6 +173,23 @@ class TestLensUpdate extends starlight.tests.TestCase {
         assertRemovedUpdate(current.id, pendingUpdates[0]);
 
         assertEquals('h2', pendingUpdates[1].tag);
+    }
+
+    public function testSelectElementValueOnAdd() {
+        var next = e(
+            'select',
+            {"value": "Two"},
+            [
+                e('option', 'One'),
+                e('option', 'Two')
+            ]);
+
+        var pendingUpdates = new Lens().update([next], []);
+
+        // There should be updates that detail the transition steps.
+        assertEquals(6, pendingUpdates.length);
+        assertEquals(pendingUpdates[pendingUpdates.length-1].action, UpdateElement);
+        assertTrue(attrEquals(next.attrs, pendingUpdates[pendingUpdates.length-1].attrs));
     }
 #end
 }
@@ -333,7 +350,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
             action:AddElement,
             elementId:4,
             tag:'select',
-            attrs:attrs,
+            attrs:new VirtualElement.VirtualElementAttributes(),
             textValue:"",
             newParent:1,
             newIndex:1
@@ -373,6 +390,11 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
             textValue:"Two",
             newParent:7,
             newIndex:0
+        },
+        {
+            action:UpdateElement,
+            elementId:4,
+            attrs:attrs
         }];
         vm.consumeUpdates(updates);
 

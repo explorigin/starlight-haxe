@@ -1,5 +1,5 @@
 -cp src
-#-D plugin-support
+-D pluginSupport
 -main starlight.tests.TestRunner
 --interp
 
@@ -9,7 +9,7 @@
 -debug
 -D js-es5
 -dce full
-#-D plugin-support
+#-D pluginSupport
 -main starlight.tests.TestRunner
 -js test.js
 
@@ -19,9 +19,9 @@
 -debug
 -D js-es5
 -dce full
--D plugin-support
+-D pluginSupport
 -main starlight.tests.TestRunner
--js test-plugin-support.js
+-js test-pluginSupport.js
 
 --next
 
@@ -39,7 +39,7 @@
 -cp src/examples
 -D js-es5
 -dce full
--D plugin-support
+-D pluginSupport
 -debug
 -main todomvc.App
--js src/examples/todomvc/js/app-plugin-support.js
+-js src/examples/todomvc/js/app-pluginSupport.js
