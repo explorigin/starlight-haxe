@@ -128,6 +128,17 @@ class TestLensUpdate extends starlight.tests.TestCase {
         assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
     }
 
+    public function testElementAttributeUpdate() {
+        var current = e('h1', {"class": "test1"});
+        var next = e('h1', {"class": "test2"});
+
+        var pendingUpdates = new Lens().update([next], [current]);
+
+        // There should be updates that detail the transition steps.
+        assertEquals(1, pendingUpdates.length);
+        assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
+    }
+
     public function testElementAttributeRemove() {
         var current = e('h1', {"class": "test"});
         var next = e('h1');

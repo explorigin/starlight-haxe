@@ -263,6 +263,7 @@ class Lens {
                     var val;
                     if (next.attrs.exists(key)) {
                         val = next.attrs.get(key);
+                        attrsAreEqual = attrsAreEqual && val == current.attrs.get(key);
                     } else {
                         val = null;
                         attrsAreEqual = false;
