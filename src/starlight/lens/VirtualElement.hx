@@ -2,7 +2,7 @@ package starlight.lens;
 
 import haxe.ds.StringMap;
 
-typedef VirtualElementAttributes = StringMap<String>;
+typedef VirtualElementAttributes = StringMap<Dynamic>;
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {
     id:Int,

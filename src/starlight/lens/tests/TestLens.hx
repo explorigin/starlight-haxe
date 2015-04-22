@@ -139,6 +139,24 @@ class TestLensUpdate extends starlight.tests.TestCase {
         assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
     }
 
+    public function testCheckboxUpdate() {
+        var current = e('input[type=checkbox]', {"checked": false});
+        var next = e('input[type=checkbox]', {"checked": true});
+        var again = e('input[type=checkbox]', {"checked": false});
+
+        var pendingUpdates = new Lens().update([next], [current]);
+
+        // There should be updates that detail the transition steps.
+        assertEquals(1, pendingUpdates.length);
+        assertEquals('checked', pendingUpdates[0].attrs.get('checked'));
+
+        pendingUpdates = new Lens().update([again], [next]);
+
+        // There should be updates that detail the transition steps.
+        assertEquals(1, pendingUpdates.length);
+        assertEquals(null, pendingUpdates[0].attrs.get('checked'));
+    }
+
     public function testElementAttributeRemove() {
         var current = e('h1', {"class": "test"});
         var next = e('h1');

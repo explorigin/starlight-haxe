@@ -163,7 +163,7 @@ class Lens {
 #if js
             attrs.set('class', untyped __js__("attrs.get('class').trim()"));
 #else
-            attrs.set('class', attrs.get('class').trim());
+            attrs.set('class', cast(attrs.get('class'), String).trim());
 #end
         }
 
@@ -202,12 +202,16 @@ class Lens {
         var currentStateItems = currentState.length;
         var nextStateItems = nextState.length;
 
-        inline function place(func, upd) {
+        inline function place(func:ElementUpdate->Void, upd:ElementUpdate) {
 #if pluginSupport
             updates.push(upd);
 #else
             func(upd);
 #end
+        }
+
+        inline function processCheckboxChecked(attrs:VirtualElementAttributes) {
+            attrs.set('checked', if (cast attrs.get('checked') == true) 'checked' else null);
         }
 
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
@@ -217,6 +221,10 @@ class Lens {
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
+                if (next.tag == 'input') {
+                    processCheckboxChecked(next.attrs);
+                }
+
                 place(addElement, {
                     action:AddElement,
                     elementId:next.id,
@@ -243,6 +251,9 @@ class Lens {
                     elementId:current.id
                 });
                 // Update the new element
+                if (next.tag == 'input') {
+                    processCheckboxChecked(next.attrs);
+                }
                 place(addElement, {
                     action:AddElement,
                     elementId:next.id,
@@ -280,6 +291,10 @@ class Lens {
 
                 if (!attrsAreEqual) {
                     // Update the current element
+                    if (current.tag == 'input') {
+                        processCheckboxChecked(attrDiff);
+                    }
+
                     place(updateElement, {
                         action:UpdateElement,
                         elementId:current.id,
