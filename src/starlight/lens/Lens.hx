@@ -123,7 +123,7 @@ class Lens {
 
         while(keepGoing) {
             switch(parser.matched(2)) {
-                case "": tagName = parser.matched(3);
+                case "": tagName = parser.matched(3).toLowerCase();
                 case "#": attrs.set("id", parser.matched(3));
                 case ".": classes.push(parser.matched(3));
                 default: {
@@ -144,27 +144,23 @@ class Lens {
             keepGoing = parser.match(parser.matchedRight());
         }
 
-        if (classes.length > 0) {
-            attrs.set('class', classes.join(" "));
-        }
-
         for (attrName in Reflect.fields(attrStruct)) {
             var value = Reflect.field(attrStruct, attrName);
             if (attrName == classAttrName) {
-                if (value != "") {
-                    var cellValue = attrs.get(attrName);
-                    attrs.set(attrName, (if (cellValue != null) cellValue else "") + " " + value);
-                }
+                classes = classes.concat(cast switch(Type.typeof(value)) {
+                    case TObject: [for (key in Reflect.fields(value)) if (Reflect.field(value, key)) key];
+                    case TClass(s): [value];  // Here we just assume that it is a string value.
+                    default: throw "InvalidType passed to element.class";
+                });
+            } else if (tagName == 'input' && attrName == 'checked') {
+                attrs.set(attrName, if (cast value) 'checked' else null);
             } else {
                 attrs.set(attrName, value);
             }
         }
-        if (attrs.get('class') != null) {
-#if js
-            attrs.set('class', untyped __js__("attrs.get('class').trim()"));
-#else
-            attrs.set('class', cast(attrs.get('class'), String).trim());
-#end
+
+        if (classes.length > 0) {
+            attrs.set('class', classes.join(" "));
         }
 
         if (paramChildArray != null) {
@@ -210,10 +206,6 @@ class Lens {
 #end
         }
 
-        inline function processCheckboxChecked(attrs:VirtualElementAttributes) {
-            attrs.set('checked', if (cast attrs.get('checked') == true) 'checked' else null);
-        }
-
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
             var next = if (index < nextStateItems) nextState[index] else null;
             var current = if (index < currentStateItems) currentState[index] else null;
@@ -221,10 +213,6 @@ class Lens {
 
             if (current == null) {
                 // If there is nothing to compare, just create it.
-                if (next.tag == 'input') {
-                    processCheckboxChecked(next.attrs);
-                }
-
                 place(addElement, {
                     action:AddElement,
                     elementId:next.id,
@@ -251,9 +239,6 @@ class Lens {
                     elementId:current.id
                 });
                 // Update the new element
-                if (next.tag == 'input') {
-                    processCheckboxChecked(next.attrs);
-                }
                 place(addElement, {
                     action:AddElement,
                     elementId:next.id,
@@ -291,10 +276,6 @@ class Lens {
 
                 if (!attrsAreEqual) {
                     // Update the current element
-                    if (current.tag == 'input') {
-                        processCheckboxChecked(attrDiff);
-                    }
-
                     place(updateElement, {
                         action:UpdateElement,
                         elementId:current.id,
