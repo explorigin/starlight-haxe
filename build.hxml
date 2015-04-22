@@ -28,18 +28,8 @@
 -cp src
 -cp src/examples
 -D js-es5
+-D pluginSupport
 -dce full
 -debug
 -main todomvc.App
 -js src/examples/todomvc/js/app.js
-
---next
-
--cp src
--cp src/examples
--D js-es5
--dce full
--D pluginSupport
--debug
--main todomvc.App
--js src/examples/todomvc/js/app-pluginSupport.js

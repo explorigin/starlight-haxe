@@ -1,0 +1,10 @@
+{
+  "name": "todomvc-starlight",
+  "description": "TodoMVC implementation for Starlight",
+  "private": true,
+  "dependencies": {
+    "todomvc-common": "~1.0.1",
+    "todomvc-app-css": "~1.0.1",
+    "director": "~1.2.2"
+  }
+}
