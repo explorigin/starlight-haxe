@@ -8,10 +8,19 @@ using StringTools;
 
 class App extends Lens {
     static inline var ENTER_KEY = 13;
+    static inline var ESCAPE_KEY = 27;
 
     public var filter:String = 'all';
     var editingIndex:Int = -1;
     var todos:Array<Todo> = new Array<Todo>();
+    var store:Store<Todo>;
+
+    public function new(store:Store<Todo>) {
+        super();
+
+        this.store = store;
+        todos = this.store.findAll();
+    }
 
     function getFilteredTodos() {
         return todos.filter(function(todo) {
@@ -69,9 +78,9 @@ class App extends Lens {
 
         var todo = new Todo(val);
 
-        // if(store.add(todo)) {
+        if(store.add(todo)) {
             todos.push(todo);
-        // }
+        }
 
         _input.value = '';
         render();
@@ -82,24 +91,20 @@ class App extends Lens {
 
         var isChecked = el.checked;
 
-        for (todo in todos) {
-            todo.completed = isChecked;
-        }
-        // store.overwrite(
-        // todos = todos.map(function (todo:Todo):Todo {
-        //     todo.completed = isChecked;
-        //     return todo;
-        // });
-        // );
+        store.overwrite(
+            todos.map(function (todo:Todo):Todo {
+                todo.completed = isChecked;
+                return todo;
+            }))
+        ;
 
         render();
     }
 
     function onClearClick(evt:Dynamic) {
-        // if (store.overwrite(getActiveTodos())) {
-        //     todos = store.findAll();
-        // }
-        todos = getActiveTodos();
+        if (store.overwrite(getActiveTodos())) {
+            todos = store.findAll();
+        }
         filter = 'all';
         render();
     }
@@ -108,48 +113,47 @@ class App extends Lens {
         var el = cast(evt.target, js.html.InputElement);
         var i = indexFromEl(el);
         todos[i].completed = el.checked;
-        // store.update(todos[i]);
+        store.update(todos[i]);
         render();
     }
 
-    function onLabelDoubleClick(evt:Dynamic) {
-        var el = cast(evt.target, js.html.InputElement);
+    function onLabelClick(evt:Dynamic) {
+        var el = cast(evt.target, js.html.DOMElement);
         editingIndex = indexFromEl(el);
-        // var _input = new JQuery(evt.target).closest('li').addClass('editing').find('.edit');
         // _input.val(cast _input.val()).focus();
         render();
     }
 
     function onEditKeyUp(evt:Dynamic) {
-        // if (evt.which == ENTER_KEY) {
-        //     new JQuery(evt.target).blur();
-        // }
+        if (evt.which == ENTER_KEY) {
+            evt.target.blur();
+        }
 
-        // if (evt.which == ESCAPE_KEY) {
-        //     new JQuery(evt.target).data('abort', true).blur();
-        // }
+        if (evt.which == ESCAPE_KEY) {
+            evt.target.dataset.abort = true;
+            evt.target.blur();
+        }
     }
 
     function onEditBlur(evt:Dynamic) {
-        // var el:Element = cast evt.target;
-        // var _el = new JQuery(el);
-        // var val = _el.val().trim();
+        var el:InputElement = cast evt.target;
+        var val = el.value.trim();
 
-        // if (_el.data('abort')) {
-        //     _el.data('abort', false);
-        //     render();
-        //     return;
-        // }
+        if (evt.target.dataset.abort != null) {
+            evt.target.dataset.abort = null;
+            render();
+            return;
+        }
 
-        // var i = indexFromEl(el);
+        var i = indexFromEl(el);
 
-        // if (val != '') {
-        //     todos[i].title = val;
-        // } else {
-        //     todos.splice(i, 1);
-        // }
+        if (val != '') {
+            todos[i].title = val;
+        } else {
+            todos.splice(i, 1);
+        }
 
-        // store.update(todos[i]);
+        store.update(todos[i]);
 
         render();
     }
@@ -157,47 +161,38 @@ class App extends Lens {
     function onDestroyClick(evt:Dynamic) {
         var el = cast(evt.target, js.html.DOMElement);
         var i = indexFromEl(el);
-        // if (store.remove(todos[i].id)) {
+        if (store.remove(todos[i].id)) {
             todos.splice(i, 1);
-        // }
+        }
         render();
     }
 
-    // public function bindEvents() {
-    //     _newTodo.on('keyup', onNewTodoKeyUp);
-    //     _toggleAll.on('change', onToggleAllChange);
-    //     _footer.on('click', '#clear-completed', onClearClick);
-
-    //     _todoList.on('change', '.toggle', onToggleChange);
-    //     _todoList.on('dblclick', 'label', onLabelDoubleClick);
-    //     _todoList.on('keyup', '.edit', onEditKeyUp);
-    //     _todoList.on('focusout', '.edit', onEditBlur);
-    //     _todoList.on('click', '.destroy', onDestroyClick);
-    // }
-
     override public function view() {
+        var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
         var activeTodoCount = getActiveTodos().length;
         var completedTodos = todoCount - activeTodoCount;
 
         function itemView(index:Int, item:Todo) {
-            return e('li', {"data-id":item.id, "class":if (item.completed) 'completed' else ''}, [
-                e('div.view', [
-                    e('input.toggle', {
-                        type:"checkbox",
-                        checked: item.completed,
-                        onchange: onToggleChange
-                    }),
-                    e('label', {onDoubleClick: onLabelDoubleClick}, item.title),
-                    e('button.destroy', {onclick: onDestroyClick})
-                ]),
-                e('input', {
-                    'class': if (index == editingIndex) 'edit editing' else 'edit',
-                    value: item.title,
-                    onkeyup: onEditKeyUp,
-                    onfocusout: onEditBlur
-                })
-            ]);
+            return e('li', {
+                    "data-id":item.id,
+                    "class":{completed: item.completed, editing: index == editingIndex}
+                }, [
+                    e('div.view', [
+                        e('input.toggle', {
+                            type:"checkbox",
+                            checked: item.completed,
+                            onchange: onToggleChange
+                        }),
+                        e('label', {onclick: onLabelClick}, item.title),
+                        e('button.destroy', {onclick: onDestroyClick})
+                    ]),
+                    e('input.edit', {
+                        value: item.title,
+                        onkeyup: onEditKeyUp,
+                        onfocusout: onEditBlur
+                    })
+                ]);
         }
 
         // var view =
@@ -251,10 +246,10 @@ class App extends Lens {
                         onkeyup:onNewTodoKeyUp
                     })
                 ]),
-                e('section#main', {"class":if (todoCount == 0) "hidden" else ""}, [
+                e('section#main', {"class":{hidden: todoCount == 0}}, [
                     e('input#toggle-all', {"type":"checkbox", onchange:onToggleAllChange}),
                     e('label', {"for":"toggle-all"}, "Mark all as complete"),
-                    e('ul#todo-list', [for (i in 0...todos.length) itemView(i, todos[i])])
+                    e('ul#todo-list', [for (i in 0...currentTodos.length) itemView(i, currentTodos[i])])
                 ]),
                 e('footer#footer', {"class":if (todoCount == 0) "hidden" else ""}, [
                     e('span#todo-count', [
@@ -263,18 +258,18 @@ class App extends Lens {
                     ]),
                     e('ul#filters', [
                         e('li', [
-                            e('a', {href:"#/all", "class":if (filter == 'all') "selected" else ""}, "All")
+                            e('a', {href:"#/all", "class":{selected: filter == 'all'}}, "All")
                         ]),
                         e('li', [
-                            e('a', {href:"#/active", "class":if (filter == 'active') "selected" else ""}, "Active")
+                            e('a', {href:"#/active", "class": {selected: filter == 'active'}}, "Active")
                         ]),
                         e('li', [
-                            e('a', {href:"#/completed", "class":if (filter == 'completed') "selected" else ""}, "Completed")
+                            e('a', {href:"#/completed", "class":{selected: filter == 'completed'}}, "Completed")
                         ])
                     ]),
                     e('button#clear-completed',
                       {
-                        "class":if (completedTodos == 0) "hidden" else "",
+                        "class":{hidden: completedTodos == 0},
                         onclick:onClearClick
                       },
                       'Clear completed (' + completedTodos + ')')
@@ -295,11 +290,11 @@ class App extends Lens {
     }
 
     static function main() {
-        var app = new App();
+        var store = new Store<Todo>('todomvc');
+        var app = new App(store);
 
         // Normally in Haxe, we interact with external Javascript libraries with an extern class.
         // However, small interactions can use the magic "untyped __js__()" function.
         untyped __js__("Router({'/:filter': function (filter) { app.filter = filter; app.render(); } }).init('/all')");
-        untyped __js__("window.app = app");
     }
 }
