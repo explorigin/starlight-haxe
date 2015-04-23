@@ -193,7 +193,8 @@ class Lens {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    public function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
+    @:allow(starlight.lens.tests)
+    function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
         var currentStateItems = currentState.length;
@@ -318,7 +319,7 @@ class Lens {
     }
 
     @:keep
-    public function view():Array<VirtualElement> {
+    function view():Array<VirtualElement> {
         return [{
             id:nodeCounter++,
             tag:VirtualElementTools.TEXT_TAG,
@@ -344,7 +345,7 @@ class Lens {
         vm.render();
     }
 
-    public function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
+    function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
         for (attrName in attrs.keys()) {
             var value = attrs.get(attrName);
@@ -425,7 +426,8 @@ class Lens {
 #end
     }
 
-    public function consumeUpdates(updates:Array<ElementUpdate>) {
+    @:allow(starlight.lens.tests)
+    function consumeUpdates(updates:Array<ElementUpdate>) {
 #if debugRendering
             trace('Starting update set.');
 #end

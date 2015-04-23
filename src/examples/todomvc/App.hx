@@ -68,7 +68,7 @@ class App extends Lens {
         return -1;
     }
 
-    public function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
+    function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
         var _input = cast(evt.target, InputElement);
         var val:String = _input.value;
 
@@ -169,7 +169,7 @@ class App extends Lens {
         render();
     }
 
-    override public function view() {
+    override function view() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
         var activeTodoCount = getActiveTodos().length;

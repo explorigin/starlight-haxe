@@ -300,7 +300,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
 
 class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
-    function populateBasicElements(vm) {
+    function populateBasicElements(vm:Dynamic) {
         elementCache = vm.elementCache;
         var attrs = new VirtualElement.VirtualElementAttributes();
         attrs.set("class", "title");
