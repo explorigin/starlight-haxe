@@ -29,6 +29,7 @@
 -cp src/examples
 -D js-es5
 -D pluginSupport
+# -D debugRendering
 -dce full
 -debug
 -main todomvc.App

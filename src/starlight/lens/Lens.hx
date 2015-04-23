@@ -42,6 +42,7 @@ class Lens {
 
     var e = element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
+    var postProcessing = new haxe.ds.StringMap<Int>();
     public var elementCache = new haxe.ds.IntMap<ElementType>();
     public var currentState = new Array<VirtualElement>();
 
@@ -343,7 +344,7 @@ class Lens {
         vm.render();
     }
 
-    public static function setAttributes(element:ElementType, attrs:VirtualElementAttributes):Void {
+    public function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
         for (attrName in attrs.keys()) {
             var value = attrs.get(attrName);
@@ -351,7 +352,12 @@ class Lens {
             // FIXME - Normally we would use Reflect but it doesn't compile correctly such that firefox would work.
             if (untyped __js__("attrName in element") && !elementPropertyAttributes.match(attrName)) {
                 if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
-                    Reflect.setField(element, attrName, value);
+                    var field = untyped __js__("element[attrName]");
+                    if (untyped __js__("typeof field") == 'function' && attrName.substr(0, 2) != "on") {
+                        postProcessing.set(attrName, id);
+                    } else {
+                        untyped __js__("element[attrName] = value");
+                    }
                 }
             } else {
                 if (value == null) {
@@ -383,7 +389,7 @@ class Lens {
             element = cast js.Browser.document.createTextNode(update.textValue);
         } else {
             element = cast js.Browser.document.createElement(update.tag);
-            setAttributes(cast element, update.attrs);
+            setAttributes(cast element, update.attrs, update.elementId);
         }
         elementCache.set(update.elementId, cast element);
 
@@ -398,7 +404,7 @@ class Lens {
 
     inline function updateElement(update:ElementUpdate) {
 #if js
-        setAttributes(cast elementCache.get(update.elementId), update.attrs);
+        setAttributes(cast elementCache.get(update.elementId), update.attrs, update.elementId);
 #end
     }
 
@@ -420,8 +426,14 @@ class Lens {
     }
 
     public function consumeUpdates(updates:Array<ElementUpdate>) {
+#if debugRendering
+            trace('Starting update set.');
+#end
         while (updates.length > 0) {
             var elementUpdate = updates.shift();
+#if debugRendering
+            trace(elementUpdate);
+#end
             switch(elementUpdate.action) {
                 case AddElement: addElement(elementUpdate);
                 case UpdateElement: updateElement(elementUpdate);
@@ -429,5 +441,19 @@ class Lens {
                 case MoveElement: moveElement(elementUpdate);
             }
         }
+
+        for (method in postProcessing.keys()) {
+            var id = postProcessing.get(method);
+#if debugRendering
+            trace('postProcess calling $method on $id');
+#end
+            var el = elementCache.get(id);
+            Reflect.callMethod(el, Reflect.field(el, method), []);
+            postProcessing.remove(method);
+        }
+
+#if debugRendering
+            trace('Finished update set.');
+#end
     }
 }

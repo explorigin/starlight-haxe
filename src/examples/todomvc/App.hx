@@ -95,8 +95,8 @@ class App extends Lens {
             todos.map(function (todo:Todo):Todo {
                 todo.completed = isChecked;
                 return todo;
-            }))
-        ;
+            })
+        );
 
         render();
     }
@@ -120,7 +120,6 @@ class App extends Lens {
     function onLabelClick(evt:Dynamic) {
         var el = cast(evt.target, js.html.DOMElement);
         editingIndex = indexFromEl(el);
-        // _input.val(cast _input.val()).focus();
         render();
     }
 
@@ -130,30 +129,33 @@ class App extends Lens {
         }
 
         if (evt.which == ESCAPE_KEY) {
-            evt.target.dataset.abort = true;
+            evt.target.dataset.abort = 'true';
             evt.target.blur();
         }
     }
 
     function onEditBlur(evt:Dynamic) {
         var el:InputElement = cast evt.target;
+        var i = indexFromEl(el);
         var val = el.value.trim();
 
-        if (evt.target.dataset.abort != null) {
-            evt.target.dataset.abort = null;
+        editingIndex = -1;
+
+        if (evt.target.dataset.abort == 'true') {
+            evt.target.dataset.abort = 'false';
+            el.value = todos[i].title;
             render();
             return;
         }
 
-        var i = indexFromEl(el);
-
         if (val != '') {
             todos[i].title = val;
+            store.update(todos[i]);
         } else {
-            todos.splice(i, 1);
+            if (store.remove(todos[i].id)) {
+                todos.splice(i, 1);
+            }
         }
-
-        store.update(todos[i]);
 
         render();
     }
@@ -187,11 +189,16 @@ class App extends Lens {
                         e('label', {onclick: onLabelClick}, item.title),
                         e('button.destroy', {onclick: onDestroyClick})
                     ]),
-                    e('input.edit', {
-                        value: item.title,
-                        onkeyup: onEditKeyUp,
-                        onfocusout: onEditBlur
-                    })
+                    if (index == editingIndex)
+                        e('input.edit', {
+                            value: item.title,
+                            onkeyup: onEditKeyUp,
+                            onblur: onEditBlur,
+                            focus: true,
+                            select: true
+                        })
+                    else
+                        ''
                 ]);
         }
 
