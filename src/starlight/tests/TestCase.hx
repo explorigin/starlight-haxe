@@ -23,6 +23,16 @@ class TestCase extends haxe.unit.TestCase {
         }
     }
 
+    function assertNotEquals( a: Dynamic, b:Dynamic, ?c : PosInfos ) : Void {
+        currentTest.done = true;
+        if (a == b){
+            currentTest.success = false;
+            currentTest.error   = 'expected $a to not equal $b.';
+            currentTest.posInfos = c;
+            throw currentTest;
+        }
+    }
+
     override function assertTrue( b:Bool, ?c : PosInfos ) : Void {
         return assertEquals(true, b, c);
     }

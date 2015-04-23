@@ -443,6 +443,29 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
         assertElementValue('.form', 'result');
     }
 
+#if js
+    public function testPostProcessing() {
+        var vm = new Lens();
+        var updates = populateBasicElements(vm);
+
+        var inputEl = vm.elementCache.get(3);
+
+        assertNotEquals(js.Browser.document.activeElement, inputEl);
+
+        var inputAttrs = new VirtualElement.VirtualElementAttributes();
+        inputAttrs.set("focus", true);
+
+        updates = [{
+            action:UpdateElement,
+            elementId:3,
+            attrs:inputAttrs
+        }];
+        vm.consumeUpdates(updates);
+
+        assertEquals(js.Browser.document.activeElement, inputEl);
+    }
+#end
+
     public function testSelectAddtionWithValueSet() {
         var vm = new Lens();
         var updates = populateBasicElements(vm);
