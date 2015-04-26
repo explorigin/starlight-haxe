@@ -1,8 +1,10 @@
 package starlight.lens;
 
-import haxe.ds.StringMap;
-
-typedef VirtualElementAttributes = StringMap<Dynamic>;
+#if js
+typedef VirtualElementAttributes = haxe.DynamicAccess<Dynamic>;
+#else
+typedef VirtualElementAttributes = haxe.ds.StringMap<Dynamic>;
+#end
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {
     id:Int,
@@ -67,4 +69,30 @@ class VirtualElementTools {
         }
         return false;
     }
+
+#if (js || macro)
+    macro public static inline function keys(obj:ExprOf<VirtualElementAttributes>) {
+        return macro (untyped __js__('Object.keys')($obj):Array<String>);
+    }
+
+    macro public static inline function count(obj:ExprOf<VirtualElementAttributes>) {
+        return macro (untyped __js__('Object.keys'))($obj).length;
+    }
+
+    macro public static function values(obj:ExprOf<VirtualElementAttributes>) {
+        return macro [for (key in (untyped __js__('Object.keys')($obj):Array<String>)) ((cast $obj)[untyped __js__('key')])];
+    }
+#else
+    public static inline function keys(obj:VirtualElementAttributes) {
+        return obj.keys();
+    }
+
+    public static inline function count(obj:VirtualElementAttributes) {
+        return [for (key in obj.keys()) 1].length;
+    }
+
+    public static function values(obj:VirtualElementAttributes) {
+        return [for (key in obj.keys()) obj.get(key)];
+    }
+#end
 }

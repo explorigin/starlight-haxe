@@ -145,7 +145,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
             }
         }
 
-        return a.array().length == b.array().length;
+        return VirtualElementTools.count(a) == VirtualElementTools.count(b);
     }
 
     function assertRemovedUpdate(id, update) {
@@ -240,7 +240,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
-        assertHas(cast pendingUpdates[0].attrs, 'class');
+        assertTrue(pendingUpdates[0].attrs.exists('class'));
         assertEquals(pendingUpdates[0].attrs.get('class'), null);
     }
 
