@@ -7,6 +7,15 @@
 
 -cp src
 -debug
+-dce full
+-D pluginSupport
+-main starlight.tests.TestRunner
+-php php
+
+--next
+
+-cp src
+-debug
 -D js-es5
 -dce full
 #-D pluginSupport

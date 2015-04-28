@@ -34,10 +34,7 @@ typedef ElementUpdate = {
 
 
 class Lens {
-    static var parser = ~/((^|#|\.)([^#\.\[]+))|(\[.+\])/g;
-    static var attrParser = ~/\[([A-z]+)(=([A-z]+))?\]/;      //  Not the most efficient but EReg has some pretty severe restrictions.
-    static var elementPropertyAttributes = ~/^(list|style|form|type|width|height)$/i;
-
+    static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
 
     var e = element;  //  A shortcut for easy access in the `view` method.
@@ -120,29 +117,55 @@ class Lens {
         }
 
         var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
-        var keepGoing = parser.match(signature);
 
-        while(keepGoing) {
-            switch(parser.matched(2)) {
-                case "": tagName = parser.matched(3).toLowerCase();
-                case "#": attrs.set("id", parser.matched(3));
-                case ".": classes.push(parser.matched(3));
-                default: {
-                    if (parser.matched(4).charAt(0) == "[") {
-                        if(attrParser.match(parser.matched(4))) {
-                            if (attrParser.matched(3) != "") {
-                                attrs.set(attrParser.matched(1), attrParser.matched(3));
-                            } else if (attrParser.matched(2) != "") {
-                                attrs.set(attrParser.matched(1), "");
-                            } else {
-                                attrs.set(attrParser.matched(1), "true");
-                            }
-                        }
-                    }
-                }
+        var signatureRemaining = signature;
+        function smallestPositive(a, b) {
+            if (a == b) return 0;
+            if (a < 0) a = a*-10000;
+            if (b < 0) b = b*-10000;
+            if (a > b)
+                return 1;
+            else
+                return -1;
+        }
+        function getNext(str:String) {
+            var indexes = [
+                str.indexOf('.'),
+                str.indexOf('#'),
+                str.indexOf('[')
+            ];
+            indexes.sort(smallestPositive);
+            if (indexes[0] == -1) {
+                return str.length;
             }
 
-            keepGoing = parser.match(parser.matchedRight());
+            return indexes[0];
+        }
+        var nextElementIndex = getNext(signatureRemaining);
+
+        if (nextElementIndex != 0) {
+            tagName = signatureRemaining.substr(0, nextElementIndex).toLowerCase();
+            signatureRemaining = signatureRemaining.substr(tagName.length);
+            nextElementIndex = getNext(signatureRemaining.substr(1));
+        }
+
+        while(signatureRemaining.length != 0) {
+            switch(signatureRemaining.charAt(0)) {
+                case "#": attrs.set("id", signatureRemaining.substr(1, nextElementIndex));
+                case ".": classes.push(signatureRemaining.substr(1, nextElementIndex));
+                case "[": {
+                    var attrElements = signatureRemaining.substring(1, signatureRemaining.indexOf(']')).split('=');
+                    switch(attrElements) {
+                        case [name, value]: attrs.set(name, value);
+                        case [name]: attrs.set(name, "true");
+                        default: throw 'Invalid attributes: $attrElements';
+                    }
+                }
+                default: throw 'Invalid attributes: $signatureRemaining';
+            }
+
+            signatureRemaining = signatureRemaining.substr(nextElementIndex+1);
+            nextElementIndex = getNext(signatureRemaining.substr(1));
         }
 
         for (attrName in Reflect.fields(attrStruct)) {
@@ -351,7 +374,7 @@ class Lens {
             var value = attrs.get(attrName);
             // TODO - potential speed optimization. elementPropertiesAttributes might do better broken out to separate conditions
             // FIXME - Normally we would use Reflect but it doesn't compile correctly such that firefox would work.
-            if (untyped __js__("attrName in element") && !elementPropertyAttributes.match(attrName)) {
+            if (untyped __js__("attrName in element") && elementPropertyAttributes.indexOf(attrName) == -1) {
                 if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
                     var field = untyped __js__("element[attrName]");
                     if (untyped __js__("typeof field") == 'function' && attrName.substr(0, 2) != "on") {

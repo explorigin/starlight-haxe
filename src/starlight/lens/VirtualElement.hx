@@ -25,10 +25,10 @@ class VirtualElementTools {
         'readonly'
     ];
     public static var TEXT_TAG = '#text';
-    static var VOID_TAGNAMES = ~/^(AREA|BASE|BR|COL|COMMAND|EMBED|HR|IMG|INPUT|KEYGEN|LINK|META|PARAM|SOURCE|TRACK|WBR)$/i;
+    static var VOID_TAGNAMES = ['AREA', 'BASE', 'BR', 'COL', 'COMMAND', 'EMBED', 'HR', 'IMG', 'INPUT', 'KEYGEN', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 
     static inline public function isVoidTag(tag:String):Bool {
-        return VOID_TAGNAMES.match(tag);
+        return VOID_TAGNAMES.indexOf(tag.toUpperCase()) != -1;
     }
 
     static inline public function isTextTag(tag:String):Bool {
