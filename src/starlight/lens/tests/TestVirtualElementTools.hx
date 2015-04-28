@@ -5,6 +5,7 @@ import starlight.lens.VirtualElement.VirtualElementChildren;
 import starlight.lens.VirtualElement.VirtualElement;
 
 using starlight.lens.VirtualElement.VirtualElementTools;
+using StringTools;
 
 class TestVirtualElementTools extends haxe.unit.TestCase {
     public function testToHTML() {
@@ -109,3 +110,129 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         assertTrue(a.childrenEquals(b));
     }
 }
+
+class TestElementCreation extends starlight.tests.TestCase {
+    function assertVoidHTMLEquals(control:String, variable:String) {
+        var index = Std.int(Math.min(control.indexOf(' ', 2), control.indexOf('>', 2))) + 1;
+
+        var conTag = control.substring(1, index - 1);
+        var conElements = control.substring(index, -1).trim().split(' ');
+
+        var varTag = variable.substring(1, index - 1);
+        var varElements = variable.substring(index, -1).trim().split(' ');
+
+        // Check Tag names
+        assertEquals(conTag, varTag);
+
+        var conAttrs = new haxe.ds.StringMap<String>();
+        var conKeyCount = 0;
+        for (entry in conElements) {
+            var elements = entry.split('=');
+            if (elements.length == 1) {
+                conAttrs.set(elements[0], 'true');
+            } else {
+                conAttrs.set(elements[0], elements[1]);
+            }
+            conKeyCount++;
+        }
+        var varAttrs = new haxe.ds.StringMap<String>();
+        var varKeyCount = 0;
+        for (entry in varElements) {
+            var elements = entry.split('=');
+            if (elements.length == 1) {
+                varAttrs.set(elements[0], 'true');
+            } else {
+                varAttrs.set(elements[0], elements[1]);
+            }
+            varKeyCount++;
+        }
+
+        assertEquals(conKeyCount, varKeyCount);
+
+        for (key in conAttrs.keys()) {
+            assertEquals(conAttrs.get(key), varAttrs.get(key));
+        }
+    }
+
+    function assertHTMLEquals(control:String, variable:String) {
+        var index = control.indexOf('>', 2) + 1;
+        assertEquals(index, variable.indexOf('>', 2) + 1);
+
+        assertVoidHTMLEquals(
+            control.substring(0, index),
+            variable.substring(0, index)
+        );
+
+        var contentEndingIndex = control.length - (index + 1);
+
+        while(index < contentEndingIndex) {
+            if (control.charAt(index) != '<') {
+                assertEquals(control.substring(index, control.indexOf('<', index)), variable.substring(index, variable.indexOf('<', index)));
+            } else {
+                assertVoidHTMLEquals(
+                    control.substring(index, control.indexOf('>', index)),
+                    variable.substring(index, variable.indexOf('>', index))
+                );
+            }
+            index = control.indexOf('<', index +1);
+        }
+    }
+
+    public function testVoidGeneration() {
+        var ve = VirtualElementTools.element('br');
+        assertVoidHTMLEquals('<br>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('input', {"class": "text"});
+        assertVoidHTMLEquals('<input class="text">', ve.toHTML());
+
+        var ve = VirtualElementTools.element('input[type=checkbox]', {"class": "text", "checked": true});
+        assertVoidHTMLEquals('<input class="text" type="checkbox" checked>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('input#id.header', {"data-bind": "value: text"});
+        assertVoidHTMLEquals('<input id="id" class="header" data-bind="value: text">', ve.toHTML());
+    }
+
+    public function testStandardTagGeneration() {
+        var ve = VirtualElementTools.element('h1');
+        assertHTMLEquals('<h1></h1>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('h2', {"class": "text"});
+        assertHTMLEquals('<h2 class="text"></h2>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('span#id.header', {"data-bind": "value: text"});
+        assertHTMLEquals('<span id="id" class="header" data-bind="value: text"></span>', ve.toHTML());
+    }
+
+    public function testNestedTagGeneration() {
+        var e = VirtualElementTools.element;
+
+        var ve = e('h1', {}, ['hi']);
+        assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
+
+        var ve = e('h1', {}, 'hi');
+        assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
+
+        var ve = e('h2', {"class": "text"}, [e('span', {"class": "header"}, ["Title"])]);
+        assertHTMLEquals('<h2 class="text"><span class="header">Title</span></h2>', ve.toHTML());
+
+        var ve = e('span#id.header', {"data-bind": "value: text"}, [
+            "Title - ",
+            e('div', {"data-bind": "value: $index"})
+        ]);
+        assertHTMLEquals('<span id="id" class="header" data-bind="value: text">Title - <div data-bind="value: $$index"></div></span>', ve.toHTML());
+    }
+
+    public function testTagGenerationWithOptionalAttributes() {
+        var e = VirtualElementTools.element;
+
+        var ve = e('h1', ['hi']);
+        assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
+
+        var ve = e('h1', 'hi');
+        assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
+
+        var ve = e('h1', ['hi', e('span', {"class": "header"}, ["Title"])]);
+        assertHTMLEquals('<h1>hi<span class="header">Title</span></h1>', ve.toHTML());
+    }
+}
+

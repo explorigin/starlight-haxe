@@ -4,9 +4,6 @@ import starlight.lens.VirtualElement.VirtualElementChildren;
 import starlight.lens.VirtualElement.VirtualElementAttributes;
 import starlight.lens.VirtualElement.VirtualElement;
 
-#if !js
-using StringTools;
-#end
 using VirtualElement.VirtualElementTools;
 
 enum ElementAction {
@@ -37,7 +34,7 @@ class Lens {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
 
-    var e = element;  //  A shortcut for easy access in the `view` method.
+    var e = VirtualElementTools.element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
     var postProcessing = new haxe.ds.StringMap<Int>();
     public var elementCache = new haxe.ds.IntMap<ElementType>();
@@ -48,166 +45,6 @@ class Lens {
         this.root = js.Browser.document.body;
 #end
     };
-
-    /* element is purely a convenience function for helping to create views. */
-    public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
-        var tagName = 'div';
-        var attrs = new VirtualElementAttributes();
-        var childArray:VirtualElementChildren = new VirtualElementChildren();
-
-        var classes = new Array<String>();
-        var paramChildArray:Array<Dynamic>;
-
-        // Allow the short form of specifying children without attributes.
-        switch(Type.typeof(attrStruct)) {
-            case TClass(s): {
-                switch(Type.getClassName(s)) {
-                    case 'String': {
-                        paramChildArray = new Array<Dynamic>();
-                        paramChildArray.push(attrStruct);
-                    }
-                    case 'Array': {
-                        paramChildArray = cast attrStruct;
-                    }
-                    default: throw "Invalid Type passed to Lens.element for attributes";
-                }
-                attrStruct = {};
-            }
-            case TObject: {
-                switch(Type.typeof(children)) {
-                    case TClass(s): {
-                        switch(Type.getClassName(s)) {
-                            case 'String': {
-                                paramChildArray = new Array<Dynamic>();
-                                paramChildArray.push(children);
-                            }
-                            case 'Array': {
-                                paramChildArray = cast children;
-                            }
-                            default: throw "Invalid Type passed to Lens.element for children";
-                        }
-                    }
-                    case TNull: paramChildArray = new Array<Dynamic>();
-                    default: throw "Invalid Type passed to Lens.element for children";
-                }
-            }
-            case TNull: {
-                paramChildArray = new Array<Dynamic>();
-                attrStruct = {};
-            }
-            case TEnum(e): {
-                throw 'Elements can\'t set attributes to enum: $e';
-            }
-            case TFunction: {
-                // TODO - This should run the function and reclassify it through this switch statement as a child.
-                paramChildArray = new Array<Dynamic>();
-                var child = attrStruct();
-                switch(Type.getClassName(child)) {
-                    case 'String': paramChildArray.push(child);
-                    case 'Array': paramChildArray = cast child;
-                    default: paramChildArray.push('' + child);
-                }
-                attrStruct = {};
-            }
-            default: {
-                paramChildArray = new Array<Dynamic>();
-                paramChildArray.push('' + attrStruct);
-                attrStruct = {};
-            }
-        }
-
-        var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
-
-        var signatureRemaining = signature;
-        function smallestPositive(a, b) {
-            if (a == b) return 0;
-            if (a < 0) a = a*-10000;
-            if (b < 0) b = b*-10000;
-            if (a > b)
-                return 1;
-            else
-                return -1;
-        }
-        function getNext(str:String) {
-            var indexes = [
-                str.indexOf('.'),
-                str.indexOf('#'),
-                str.indexOf('[')
-            ];
-            indexes.sort(smallestPositive);
-            if (indexes[0] == -1) {
-                return str.length;
-            }
-
-            return indexes[0];
-        }
-        var nextElementIndex = getNext(signatureRemaining);
-
-        if (nextElementIndex != 0) {
-            tagName = signatureRemaining.substr(0, nextElementIndex).toLowerCase();
-            signatureRemaining = signatureRemaining.substr(tagName.length);
-            nextElementIndex = getNext(signatureRemaining.substr(1));
-        }
-
-        while(signatureRemaining.length != 0) {
-            switch(signatureRemaining.charAt(0)) {
-                case "#": attrs.set("id", signatureRemaining.substr(1, nextElementIndex));
-                case ".": classes.push(signatureRemaining.substr(1, nextElementIndex));
-                case "[": {
-                    var attrElements = signatureRemaining.substring(1, signatureRemaining.indexOf(']')).split('=');
-                    switch(attrElements) {
-                        case [name, value]: attrs.set(name, value);
-                        case [name]: attrs.set(name, "true");
-                        default: throw 'Invalid attributes: $attrElements';
-                    }
-                }
-                default: throw 'Invalid attributes: $signatureRemaining';
-            }
-
-            signatureRemaining = signatureRemaining.substr(nextElementIndex+1);
-            nextElementIndex = getNext(signatureRemaining.substr(1));
-        }
-
-        for (attrName in Reflect.fields(attrStruct)) {
-            var value = Reflect.field(attrStruct, attrName);
-            if (attrName == classAttrName) {
-                classes = classes.concat(cast switch(Type.typeof(value)) {
-                    case TObject: [for (key in Reflect.fields(value)) if (Reflect.field(value, key)) key];
-                    case TClass(s): [value];  // Here we just assume that it is a string value.
-                    default: throw "InvalidType passed to element.class";
-                });
-            } else if (tagName == 'input' && attrName == 'checked') {
-                attrs.set(attrName, if (cast value) 'checked' else null);
-            } else {
-                attrs.set(attrName, value);
-            }
-        }
-
-        if (classes.length > 0) {
-            attrs.set('class', classes.join(" "));
-        }
-
-        if (paramChildArray != null) {
-            for (child in paramChildArray) {
-                if (Type.getClass(child) == String) {
-                    // Add a string as a TextNode
-                    childArray.push({
-                        tag:VirtualElementTools.TEXT_TAG,
-                        children: [],
-                        textValue: child
-                    });
-                } else {
-                    childArray.push(child);
-                }
-            }
-        }
-
-        return {
-            tag:tagName,
-            attrs:attrs,
-            children:childArray
-        };
-    }
 
     /*
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
