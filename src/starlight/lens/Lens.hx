@@ -147,6 +147,7 @@ class Lens {
             } else {
                 currentElementId = current.id;
             }
+            next.id = currentElementId;
 
 #if pluginSupport
             updates = updates.concat(

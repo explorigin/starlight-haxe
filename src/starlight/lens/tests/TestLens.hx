@@ -11,6 +11,7 @@ using VirtualElement.VirtualElementTools;
 
 class TestLensUpdate extends starlight.tests.TestCase {
     var e = VirtualElementTools.element;
+    var nodeCount = 0;
 
     static function attrEquals(a:VirtualElementAttributes, b:VirtualElementAttributes):Bool {
         for (key in a.keys()) {
@@ -37,7 +38,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 
+        assertEquals(next.id, null);
         var pendingUpdates = new Lens().update([next], []);
+        assertNotEquals(next.id, null);
 
         // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
@@ -50,7 +53,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1');
         var next = e('h1', {"class": "test"});
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -61,7 +66,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test1"});
         var next = e('h1', {"class": "test2"});
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -75,13 +82,16 @@ class TestLensUpdate extends starlight.tests.TestCase {
 
         assertEquals('edit', current.attrs.get('class'));
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('edit active', pendingUpdates[0].attrs.get('class'));
 
         pendingUpdates = new Lens().update([again], [next]);
+        assertEquals(again.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -93,13 +103,16 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('input[type=checkbox]', {"checked": true});
         var again = e('input[type=checkbox]', {"checked": false});
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('checked', pendingUpdates[0].attrs.get('checked'));
 
         pendingUpdates = new Lens().update([again], [next]);
+        assertEquals(again.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -110,7 +123,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"});
         var next = e('h1');
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -133,7 +148,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"});
         var next = e('h1', {"class": "test"}, "Header");
 
+        assertEquals(null, next.children[0].id);
         var pendingUpdates = new Lens().update([next], [current]);
+        assertNotEquals(null, next.children[0].id);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -144,7 +161,9 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1');
         var next = e('h2');
 
+        current.id = nodeCount++;
         var pendingUpdates = new Lens().update([next], [current]);
+        assertNotEquals(current.id, next.id);
 
         // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
