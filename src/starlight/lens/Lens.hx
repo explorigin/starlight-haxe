@@ -472,7 +472,7 @@ class Lens {
             trace('postProcess calling $method on $id');
 #end
             var el = elementCache.get(id);
-            Reflect.callMethod(el, Reflect.field(el, method), []);
+            untyped __js__("el")[method]();
             postProcessing.remove(method);
         }
 
