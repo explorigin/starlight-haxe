@@ -8,18 +8,16 @@ With Javascript, you can have...
 
 ...but you can only pick a few of these at a time.  Starlight gives you all these things to provide a solid platform for large web applications.  Starlight is built with a Javascript-like language called [Haxe](https://www.haxe.org).  In addition to the above features, Haxe offers...
 
-- dead-code elimination
-- Support for various server-side technology stacks (PHP, Python, NodeJS, Java or Neko)
+- Dead-code elimination
+- Support for various server-side technology stacks ([PHP](http://php.net/), [Python](https://www.python.org/), [NodeJS](https://nodejs.org/), [Java](http://www.java.com/en/about/) or [Neko](http://nekovm.org/))
 
 ## Run tests
 
-To ensure that your platform can run Starlight correctly, tests will run automatically when you build `Starlight`.
+To ensure that your platform can run Starlight correctly, tests will run automatically when you build Starlight.
 
     haxe build.hxml
 
 Be sure to open `test.html` in your target web browsers to ensure that the browser components work properly.
-
-(Starlight is in early development and hence neko is the only supported server target.  This will change before an alpha release.)
 
 ## Modules
 
