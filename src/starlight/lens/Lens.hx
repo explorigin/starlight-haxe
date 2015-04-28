@@ -3,6 +3,7 @@ package starlight.lens;
 import starlight.lens.VirtualElement.VirtualElementChildren;
 import starlight.lens.VirtualElement.VirtualElementAttributes;
 import starlight.lens.VirtualElement.VirtualElement;
+import starlight.core.UnsafeMap;
 
 using VirtualElement.VirtualElementTools;
 
@@ -36,7 +37,7 @@ class Lens {
 
     var e = VirtualElementTools.element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
-    var postProcessing = new haxe.ds.StringMap<Int>();
+    var postProcessing = new UnsafeMap();
     public var elementCache = new haxe.ds.IntMap<ElementType>();
     public var currentState = new Array<VirtualElement>();
 
@@ -116,7 +117,7 @@ class Lens {
                 var attrDiff = new VirtualElementAttributes();
                 var attrsAreEqual = true;
 
-                for (key in current.attrs.keys()) {
+                for (key in VirtualElementTools.keys(current.attrs)) {
                     var val;
                     if (next.attrs.exists(key)) {
                         val = next.attrs.get(key);
@@ -128,7 +129,7 @@ class Lens {
                     attrDiff.set(key, val);
                 }
 
-                for (key in next.attrs.keys()) {
+                for (key in VirtualElementTools.keys(next.attrs)) {
                     if (!attrDiff.exists(key)) {
                         attrDiff.set(key, next.attrs.get(key));
                         attrsAreEqual = false;
@@ -207,7 +208,7 @@ class Lens {
 
     function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
-        for (attrName in attrs.keys()) {
+        for (attrName in VirtualElementTools.keys(attrs)) {
             var value = attrs.get(attrName);
             // TODO - potential speed optimization. elementPropertiesAttributes might do better broken out to separate conditions
             // FIXME - Normally we would use Reflect but it doesn't compile correctly such that firefox would work.
@@ -304,7 +305,7 @@ class Lens {
             }
         }
 
-        for (method in postProcessing.keys()) {
+        for (method in VirtualElementTools.keys(postProcessing)) {
             var id = postProcessing.get(method);
 #if debugRendering
             trace('postProcess calling $method on $id');

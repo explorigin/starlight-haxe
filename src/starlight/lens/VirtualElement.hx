@@ -1,10 +1,8 @@
 package starlight.lens;
 
-#if js
-typedef VirtualElementAttributes = haxe.DynamicAccess<Dynamic>;
-#else
-typedef VirtualElementAttributes = haxe.ds.StringMap<Dynamic>;
-#end
+import starlight.core.UnsafeMap;
+
+typedef VirtualElementAttributes = UnsafeMap;
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {
     tag:String,
@@ -247,29 +245,28 @@ class VirtualElementTools {
         };
     }
 
-
 #if (js || macro)
-    macro public static inline function keys(obj:ExprOf<VirtualElementAttributes>) {
+    macro public static inline function keys(obj:ExprOf<UnsafeMap>) {
         return macro (untyped __js__('Object.keys')($obj):Array<String>);
     }
 
-    macro public static inline function count(obj:ExprOf<VirtualElementAttributes>) {
+    macro public static inline function count(obj:ExprOf<UnsafeMap>) {
         return macro (untyped __js__('Object.keys'))($obj).length;
     }
 
-    macro public static function values(obj:ExprOf<VirtualElementAttributes>) {
-        return macro [for (key in (untyped __js__('Object.keys')($obj):Array<String>)) ((cast $obj)[untyped __js__('key')])];
+    macro public static function values(obj:ExprOf<UnsafeMap>) {
+        return macro [for (key in (untyped __js__('Object.keys')($obj):Array<Dynamic>)) ((cast $obj)[untyped __js__('key')])];
     }
 #else
-    public static inline function keys(obj:VirtualElementAttributes) {
+    public static inline function keys(obj:UnsafeMap) {
         return obj.keys();
     }
 
-    public static inline function count(obj:VirtualElementAttributes) {
+    public static inline function count(obj:UnsafeMap) {
         return [for (key in obj.keys()) 1].length;
     }
 
-    public static function values(obj:VirtualElementAttributes) {
+    public static function values(obj:UnsafeMap) {
         return [for (key in obj.keys()) obj.get(key)];
     }
 #end
