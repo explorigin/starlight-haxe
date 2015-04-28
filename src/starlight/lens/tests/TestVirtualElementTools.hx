@@ -22,8 +22,7 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
             tag:"br",
             id:1,
             attrs:new VirtualElementAttributes(),
-            children:[],
-            isVoid: true
+            children:[]
         };
         assertEquals('<br>', ve.toHTML());
 
@@ -33,8 +32,7 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
             tag:"input",
             id:1,
             attrs:attrs,
-            children:[],
-            isVoid: true
+            children:[]
         };
         assertEquals(ve.toHTML(), '<input type="text">');
     }
@@ -68,14 +66,34 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         assertEquals(ve.toHTML(), '<a href="about:config">Hi</a>');
     }
 
-    public function testIsVoidTag() {
-        assertTrue('br'.isVoidTag());
-        assertFalse('a'.isVoidTag());
+    public function testIsVoid() {
+        var v1:VirtualElement = {
+            tag:"a",
+            attrs:new VirtualElementAttributes(),
+            children:[]
+        };
+        var v2:VirtualElement = {
+            tag:"br",
+            attrs:new VirtualElementAttributes(),
+            children:[]
+        };
+        assertFalse(v1.isVoid());
+        assertTrue(v2.isVoid());
     }
 
-    public function testIsTextTag() {
-        assertTrue('#text'.isTextTag());
-        assertFalse('a'.isTextTag());
+    public function testIsText() {
+        var v1:VirtualElement = {
+            tag:VirtualElementTools.TEXT_TAG,
+            attrs:new VirtualElementAttributes(),
+            children:[]
+        };
+        var v2:VirtualElement = {
+            tag:"br",
+            attrs:new VirtualElementAttributes(),
+            children:[]
+        };
+        assertTrue(v1.isText());
+        assertFalse(v2.isText());
     }
 
     public function testChildrenEquals() {

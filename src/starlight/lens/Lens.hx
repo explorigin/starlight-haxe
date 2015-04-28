@@ -192,7 +192,6 @@ class Lens {
                 if (Type.getClass(child) == String) {
                     // Add a string as a TextNode
                     childArray.push({
-                        id:nodeCounter++,
                         tag:VirtualElementTools.TEXT_TAG,
                         children: [],
                         textValue: child
@@ -204,9 +203,7 @@ class Lens {
         }
 
         return {
-            id:nodeCounter++,
             tag:tagName,
-            isVoid:tagName.isVoidTag(),
             attrs:attrs,
             children:childArray
         };
@@ -235,12 +232,14 @@ class Lens {
             var next = if (index < nextStateItems) nextState[index] else null;
             var current = if (index < currentStateItems) currentState[index] else null;
             var changingSelectValue = false;
+            var currentElementId:Int;
 
             if (current == null) {
-                // If there is nothing to compare, just create it.
+                currentElementId = nodeCounter++;
+
                 place(addElement, {
                     action:AddElement,
-                    elementId:next.id,
+                    elementId:currentElementId,
                     tag:next.tag,
                     attrs:next.attrs,
                     textValue:next.textValue,
@@ -258,15 +257,15 @@ class Lens {
                 });
                 continue;
             } else if (next.tag != current.tag || next.textValue != current.textValue) {
-                // Remove the old element
+                currentElementId = nodeCounter++;
+
                 place(removeElement, {
                     action:RemoveElement,
                     elementId:current.id
                 });
-                // Update the new element
                 place(addElement, {
                     action:AddElement,
-                    elementId:next.id,
+                    elementId:currentElementId,
                     tag:next.tag,
                     attrs:next.attrs,
                     textValue:next.textValue,
@@ -276,7 +275,7 @@ class Lens {
 
                 changingSelectValue = next.tag == 'select' && next.attrs.exists('value');
 
-            } else if (next.tag != VirtualElementTools.TEXT_TAG) {
+            } else if (!next.isText()) {
                 var attrDiff = new VirtualElementAttributes();
                 var attrsAreEqual = true;
 
@@ -307,9 +306,9 @@ class Lens {
                         attrs:attrDiff
                     });
                 }
-                next.id = current.id;
+                currentElementId = current.id;
             } else {
-                next.id = current.id;
+                currentElementId = current.id;
             }
 
 #if pluginSupport
@@ -317,14 +316,14 @@ class Lens {
                 update(
                     if (next == null) [] else next.children,
                     if (current == null) [] else current.children,
-                    next.id
+                    currentElementId
                 )
             );
 #else
             update(
                 if (next == null) [] else next.children,
                 if (current == null) [] else current.children,
-                next.id
+                currentElementId
             );
 #end
             if (changingSelectValue) {
@@ -332,7 +331,7 @@ class Lens {
                 attrs.set('value', next.attrs.get('value'));
                 place(updateElement, {
                     action:UpdateElement,
-                    elementId:next.id,
+                    elementId:currentElementId,
                     attrs:attrs
                 });
             }
@@ -409,7 +408,7 @@ class Lens {
         var element:ElementType;
         var parent:ElementType;
 
-        if (update.tag == '#text') {
+        if (update.isText()) {
             element = cast js.Browser.document.createTextNode(update.textValue);
         } else {
             element = cast js.Browser.document.createElement(update.tag);
