@@ -23,11 +23,29 @@ class VirtualElementTools {
         'multiple',
         'readonly'
     ];
+    static var VOID_TAGNAMES = [
+        'area',
+        'base',
+        'br',
+        'col',
+        'command',
+        'embed',
+        'hr',
+        'img',
+        'input',
+        'keygen',
+        'link',
+        'meta',
+        'param',
+        'source',
+        'track',
+        'wbr'
+    ];
+
     public static var TEXT_TAG = '#text';
-    static var VOID_TAGNAMES = ['AREA', 'BASE', 'BR', 'COL', 'COMMAND', 'EMBED', 'HR', 'IMG', 'INPUT', 'KEYGEN', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'];
 
     static inline public function isVoid(element:VirtualElement):Bool {
-        return VOID_TAGNAMES.indexOf(element.tag.toUpperCase()) != -1;
+        return VOID_TAGNAMES.indexOf(element.tag.toLowerCase()) != -1;
     }
 
     static inline public function isText(element:{tag:String}):Bool {

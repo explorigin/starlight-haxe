@@ -10,7 +10,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
     public function testToHTML() {
         var ve:VirtualElement = {
             tag:"#text",
-            id:1,
             children:[],
             textValue:"Hi"
         };
@@ -20,7 +19,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
     public function testVoidTagToHTML() {
         var ve:VirtualElement = {
             tag:"br",
-            id:1,
             attrs:new VirtualElementAttributes(),
             children:[]
         };
@@ -30,7 +28,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         attrs.set('type', 'text');
         ve = {
             tag:"input",
-            id:1,
             attrs:attrs,
             children:[]
         };
@@ -42,7 +39,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         attrs.set('href', 'about:config');
         var ve:VirtualElement = {
             tag:"a",
-            id:1,
             attrs:attrs,
             children:[]
         };
@@ -54,11 +50,9 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         attrs.set('href', 'about:config');
         var ve:VirtualElement = {
             tag:"a",
-            id:1,
             attrs:attrs,
             children:[{
                 tag:"#text",
-                id:1,
                 children:[],
                 textValue:"Hi"
             }]
@@ -101,7 +95,6 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
         var b = new VirtualElementChildren();
         var ve:VirtualElement = {
             tag:"#text",
-            id:1,
             children:[],
             textValue:"Hi"
         };
