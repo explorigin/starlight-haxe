@@ -1,4 +1,4 @@
-package starlight.view.tests;
+package starlight.view.test;
 
 import starlight.core.Types.ElementType;
 import starlight.view.View;
@@ -10,7 +10,7 @@ using Lambda;
 using VirtualElement.VirtualElementTools;
 
 
-class TestViewUpdate extends starlight.tests.TestCase {
+class TestViewUpdate extends starlight.test.TestCase {
     var e = VirtualElementTools.element;
     var nodeCount = 0;
 
@@ -193,7 +193,7 @@ class TestViewUpdate extends starlight.tests.TestCase {
 }
 
 
-class TestViewConsumeUpdates extends starlight.tests.FrontendTestCase {
+class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
     function populateBasicElements(vm:Dynamic) {
         elementCache = vm.elementCache;
         var attrs = new VirtualElement.VirtualElementAttributes();

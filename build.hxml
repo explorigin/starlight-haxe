@@ -1,6 +1,6 @@
 -cp src
 -D pluginSupport
--main starlight.tests.TestRunner
+-main starlight.test.TestRunner
 --interp
 
 --next
@@ -9,7 +9,7 @@
 -debug
 -dce full
 -D pluginSupport
--main starlight.tests.TestRunner
+-main starlight.test.TestRunner
 -php php
 
 --next
@@ -19,7 +19,7 @@
 -D js-es5
 -dce full
 #-D pluginSupport
--main starlight.tests.TestRunner
+-main starlight.test.TestRunner
 -js test.js
 
 --next
@@ -29,7 +29,7 @@
 -D js-es5
 -dce full
 -D pluginSupport
--main starlight.tests.TestRunner
+-main starlight.test.TestRunner
 -js test-pluginSupport.js
 
 --next

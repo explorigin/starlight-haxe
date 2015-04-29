@@ -1,4 +1,4 @@
-package starlight.tests;
+package starlight.test;
 
 class TestRunner {
     static function runTests() {
@@ -8,10 +8,10 @@ class TestRunner {
 
         var r = new haxe.unit.TestRunner();
 
-        r.add(new starlight.view.tests.TestVirtualElementTools());
-        r.add(new starlight.view.tests.TestVirtualElementTools.TestElementCreation());
-        r.add(new starlight.view.tests.TestView.TestViewUpdate());
-        r.add(new starlight.view.tests.TestView.TestViewConsumeUpdates());
+        r.add(new starlight.view.test.TestVirtualElementTools());
+        r.add(new starlight.view.test.TestVirtualElementTools.TestElementCreation());
+        r.add(new starlight.view.test.TestView.TestViewUpdate());
+        r.add(new starlight.view.test.TestView.TestViewConsumeUpdates());
 
         r.run();
 

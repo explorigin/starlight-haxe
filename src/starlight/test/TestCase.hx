@@ -1,4 +1,4 @@
-package starlight.tests;
+package starlight.test;
 
 import haxe.PosInfos;
 

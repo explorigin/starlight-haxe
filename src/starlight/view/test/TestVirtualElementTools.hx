@@ -1,4 +1,4 @@
-package starlight.view.tests;
+package starlight.view.test;
 
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElementChildren;
@@ -111,7 +111,7 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
     }
 }
 
-class TestElementCreation extends starlight.tests.TestCase {
+class TestElementCreation extends starlight.test.TestCase {
     function assertVoidHTMLEquals(control:String, variable:String) {
         var index = Std.int(Math.min(control.indexOf(' ', 2), control.indexOf('>', 2))) + 1;
 

@@ -45,7 +45,7 @@ class View {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    @:allow(starlight.view.tests)
+    @:allow(starlight.view.test)
     function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
@@ -281,7 +281,7 @@ class View {
 #end
     }
 
-    @:allow(starlight.view.tests)
+    @:allow(starlight.view.test)
     function consumeUpdates(updates:Array<ElementUpdate>) {
 #if debugRendering
             trace('Starting update set.');

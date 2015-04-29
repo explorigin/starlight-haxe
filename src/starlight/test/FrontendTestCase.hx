@@ -1,4 +1,4 @@
-package starlight.tests;
+package starlight.test;
 
 class FrontendTestCase extends TestCase {
     public var elementCache = new haxe.ds.IntMap<starlight.core.Types.ElementType>();
