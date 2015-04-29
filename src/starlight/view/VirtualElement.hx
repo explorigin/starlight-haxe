@@ -1,6 +1,7 @@
 package starlight.view;
 
 import starlight.core.Types.UnsafeMap;
+import starlight.core.Exceptions.TypeException;
 
 typedef VirtualElementAttributes = UnsafeMap;
 typedef VirtualElementChildren = Array<VirtualElement>;
@@ -105,7 +106,7 @@ class VirtualElementTools {
                     case 'Array': {
                         paramChildArray = cast attrStruct;
                     }
-                    default: throw "Invalid Type passed to View.element for attributes";
+                    default: throw new TypeException("Invalid Type passed to View.element for attributes");
                 }
                 attrStruct = {};
             }
@@ -120,11 +121,11 @@ class VirtualElementTools {
                             case 'Array': {
                                 paramChildArray = cast children;
                             }
-                            default: throw "Invalid Type passed to View.element for children";
+                            default: throw new TypeException("Invalid Type passed to View.element for children");
                         }
                     }
                     case TNull: paramChildArray = new Array<Dynamic>();
-                    default: throw "Invalid Type passed to View.element for children";
+                    default: throw new TypeException("Invalid Type passed to View.element for children");
                 }
             }
             case TNull: {
@@ -132,7 +133,7 @@ class VirtualElementTools {
                 attrStruct = {};
             }
             case TEnum(e): {
-                throw 'Elements can\'t set attributes to enum: $e';
+                throw new TypeException('Elements can\'t set attributes to enum: $e');
             }
             case TFunction: {
                 // TODO - This should run the function and reclassify it through this switch statement as a child.
@@ -194,10 +195,10 @@ class VirtualElementTools {
                     switch(attrElements) {
                         case [name, value]: attrs.set(name, value);
                         case [name]: attrs.set(name, "true");
-                        default: throw 'Invalid attributes: $attrElements';
+                        default: throw new TypeException('Attributes is not properly formatted: ${attrElements.join("=")}');
                     }
                 }
-                default: throw 'Invalid attributes: $signatureRemaining';
+                default: throw new TypeException('Invalid signature: "$signatureRemaining"');
             }
 
             signatureRemaining = signatureRemaining.substr(nextElementIndex+1);
@@ -210,7 +211,7 @@ class VirtualElementTools {
                 classes = classes.concat(cast switch(Type.typeof(value)) {
                     case TObject: [for (key in Reflect.fields(value)) if (Reflect.field(value, key)) key];
                     case TClass(s): [value];  // Here we just assume that it is a string value.
-                    default: throw "InvalidType passed to element.class";
+                    default: throw new TypeException("InvalidType passed to element.class");
                 });
             } else if (tagName == 'input' && attrName == 'checked') {
                 attrs.set(attrName, if (cast value) 'checked' else null);
