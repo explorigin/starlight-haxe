@@ -1,7 +1,7 @@
 package starlight.tests;
 
 class FrontendTestCase extends TestCase {
-    public var elementCache = new haxe.ds.IntMap<starlight.lens.Lens.ElementType>();
+    public var elementCache = new haxe.ds.IntMap<starlight.core.Types.ElementType>();
 
     public override function tearDown() {
         var i = elementCache.keys();

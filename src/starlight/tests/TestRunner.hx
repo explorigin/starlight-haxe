@@ -8,10 +8,10 @@ class TestRunner {
 
         var r = new haxe.unit.TestRunner();
 
-        r.add(new starlight.lens.tests.TestVirtualElementTools());
-        r.add(new starlight.lens.tests.TestVirtualElementTools.TestElementCreation());
-        r.add(new starlight.lens.tests.TestLens.TestLensUpdate());
-        r.add(new starlight.lens.tests.TestLens.TestLensConsumeUpdates());
+        r.add(new starlight.view.tests.TestVirtualElementTools());
+        r.add(new starlight.view.tests.TestVirtualElementTools.TestElementCreation());
+        r.add(new starlight.view.tests.TestView.TestViewUpdate());
+        r.add(new starlight.view.tests.TestView.TestViewConsumeUpdates());
 
         r.run();
 

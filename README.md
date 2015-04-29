@@ -27,14 +27,14 @@ Starlight consists of a set of modular components to handle:
 - view-rendering and updating
 - browser-to-server and server-to-server communication
 
-### Lens
+### View
 
-Lens is the View portion of Starlight.  It provides a way to define views, attach events and build components.  It is lightweight and can be used as a standalone analogue for [KnockoutJS](https://www.knockoutjs.com) or [React](https://www.facebook.com/react).
+The View portion of Starlight provides a way to define and manipulate the browser DOM using templates, event handling and components.  It is lightweight virtual-DOM inspired by [Mithril](http://mithriljs.com) and [KnockoutJS](https://www.knockoutjs.com).
 
 #### Example
 
 ```Haxe
-class ViewModel extends Lens {
+class ViewModel extends View {
     var title = "Starlight Demo"
     var clickCount = 0;
 
@@ -52,7 +52,7 @@ class ViewModel extends Lens {
     }
 }
 
-var vm = Lens.apply(new ViewModel());
+View.apply(new ViewModel());
 ```
 
 ### Payload

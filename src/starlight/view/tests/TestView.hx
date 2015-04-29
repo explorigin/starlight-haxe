@@ -1,15 +1,16 @@
-package starlight.lens.tests;
+package starlight.view.tests;
 
-import starlight.lens.Lens;
-import starlight.lens.VirtualElement.VirtualElementAttributes;
-import starlight.lens.Lens.ElementUpdate;
-import starlight.lens.Lens.ElementAction.*;
+import starlight.core.Types.ElementType;
+import starlight.view.View;
+import starlight.view.VirtualElement.VirtualElementAttributes;
+import starlight.view.View.ElementUpdate;
+import starlight.view.View.ElementAction.*;
 
 using Lambda;
 using VirtualElement.VirtualElementTools;
 
 
-class TestLensUpdate extends starlight.tests.TestCase {
+class TestViewUpdate extends starlight.tests.TestCase {
     var e = VirtualElementTools.element;
     var nodeCount = 0;
 
@@ -39,7 +40,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h2', {"class": "test"}, "Header");
 
         assertEquals(next.id, null);
-        var pendingUpdates = new Lens().update([next], []);
+        var pendingUpdates = new View().update([next], []);
         assertNotEquals(next.id, null);
 
         // There should be updates that detail the transition steps.
@@ -54,7 +55,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h1', {"class": "test"});
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
@@ -67,7 +68,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h1', {"class": "test2"});
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
@@ -83,14 +84,14 @@ class TestLensUpdate extends starlight.tests.TestCase {
         assertEquals('edit', current.attrs.get('class'));
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('edit active', pendingUpdates[0].attrs.get('class'));
 
-        pendingUpdates = new Lens().update([again], [next]);
+        pendingUpdates = new View().update([again], [next]);
         assertEquals(again.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
@@ -104,14 +105,14 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var again = e('input[type=checkbox]', {"checked": false});
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('checked', pendingUpdates[0].attrs.get('checked'));
 
-        pendingUpdates = new Lens().update([again], [next]);
+        pendingUpdates = new View().update([again], [next]);
         assertEquals(again.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
@@ -124,7 +125,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h1');
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
         // There should be updates that detail the transition steps.
@@ -137,7 +138,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var current = e('h1', {"class": "test"}, "Header");
         var next = e('h1', {"class": "test"});
 
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
 
         // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
@@ -149,7 +150,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h1', {"class": "test"}, "Header");
 
         assertEquals(null, next.children[0].id);
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertNotEquals(null, next.children[0].id);
 
         // There should be updates that detail the transition steps.
@@ -162,7 +163,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
         var next = e('h2');
 
         current.id = nodeCount++;
-        var pendingUpdates = new Lens().update([next], [current]);
+        var pendingUpdates = new View().update([next], [current]);
         assertNotEquals(current.id, next.id);
 
         // There should be updates that detail the transition steps.
@@ -181,7 +182,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
                 e('option', 'Two')
             ]);
 
-        var pendingUpdates = new Lens().update([next], []);
+        var pendingUpdates = new View().update([next], []);
 
         // There should be updates that detail the transition steps.
         assertEquals(6, pendingUpdates.length);
@@ -192,7 +193,7 @@ class TestLensUpdate extends starlight.tests.TestCase {
 }
 
 
-class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
+class TestViewConsumeUpdates extends starlight.tests.FrontendTestCase {
     function populateBasicElements(vm:Dynamic) {
         elementCache = vm.elementCache;
         var attrs = new VirtualElement.VirtualElementAttributes();
@@ -236,13 +237,13 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
     }
 
     public function testElementCreation() {
-        var vm = new Lens();
+        var vm = new View();
         populateBasicElements(vm);
         assertElementTextEquals("Starlight Demo", '.title');
     }
 
     public function testElementRemoval() {
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
 
         updates = [{
@@ -258,7 +259,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
     }
 
     public function testElementUpdate() {
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
         assertElementTextEquals("Starlight Demo", '.title');
 
@@ -292,7 +293,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
 #end
         }
 
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
 #if js
         var bodyChildren = untyped __js__("Array.prototype.slice.call( document.body.childNodes )");
@@ -319,7 +320,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
     }
 
     public function testInputValueUpdate() {
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
 
         assertElementValue('.form', 'initial');
@@ -338,7 +339,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
 
 #if js
     public function testPostProcessing() {
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
 
         var inputEl = vm.elementCache.get(3);
@@ -360,7 +361,7 @@ class TestLensConsumeUpdates extends starlight.tests.FrontendTestCase {
 #end
 
     public function testSelectAddtionWithValueSet() {
-        var vm = new Lens();
+        var vm = new View();
         var updates = populateBasicElements(vm);
 
         var attrs = new VirtualElement.VirtualElementAttributes();

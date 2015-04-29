@@ -1,9 +1,10 @@
-package starlight.lens;
+package starlight.view;
 
-import starlight.lens.VirtualElement.VirtualElementChildren;
-import starlight.lens.VirtualElement.VirtualElementAttributes;
-import starlight.lens.VirtualElement.VirtualElement;
-import starlight.core.UnsafeMap;
+import starlight.view.VirtualElement.VirtualElementChildren;
+import starlight.view.VirtualElement.VirtualElementAttributes;
+import starlight.view.VirtualElement.VirtualElement;
+import starlight.core.Types.UnsafeMap;
+import starlight.core.Types.ElementType;
 
 using VirtualElement.VirtualElementTools;
 
@@ -24,14 +25,7 @@ typedef ElementUpdate = {
     ?newIndex:Int
 }
 
-#if js
-    typedef ElementType = js.html.Element;
-#else
-    typedef ElementType = Dynamic;
-#end
-
-
-class Lens {
+class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
 
@@ -51,7 +45,7 @@ class Lens {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    @:allow(starlight.lens.tests)
+    @:allow(starlight.view.tests)
     function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
@@ -199,7 +193,7 @@ class Lens {
         currentState = nextState;
     }
 
-    public static function apply(vm:Lens, ?root:ElementType) {
+    public static function apply(vm:View, ?root:ElementType) {
         if (root != null) {
             vm.root = root;
         }
@@ -287,7 +281,7 @@ class Lens {
 #end
     }
 
-    @:allow(starlight.lens.tests)
+    @:allow(starlight.view.tests)
     function consumeUpdates(updates:Array<ElementUpdate>) {
 #if debugRendering
             trace('Starting update set.');

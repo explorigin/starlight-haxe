@@ -1,6 +1,6 @@
-package starlight.lens;
+package starlight.view;
 
-import starlight.core.UnsafeMap;
+import starlight.core.Types.UnsafeMap;
 
 typedef VirtualElementAttributes = UnsafeMap;
 typedef VirtualElementChildren = Array<VirtualElement>;
@@ -105,7 +105,7 @@ class VirtualElementTools {
                     case 'Array': {
                         paramChildArray = cast attrStruct;
                     }
-                    default: throw "Invalid Type passed to Lens.element for attributes";
+                    default: throw "Invalid Type passed to View.element for attributes";
                 }
                 attrStruct = {};
             }
@@ -120,11 +120,11 @@ class VirtualElementTools {
                             case 'Array': {
                                 paramChildArray = cast children;
                             }
-                            default: throw "Invalid Type passed to Lens.element for children";
+                            default: throw "Invalid Type passed to View.element for children";
                         }
                     }
                     case TNull: paramChildArray = new Array<Dynamic>();
-                    default: throw "Invalid Type passed to Lens.element for children";
+                    default: throw "Invalid Type passed to View.element for children";
                 }
             }
             case TNull: {

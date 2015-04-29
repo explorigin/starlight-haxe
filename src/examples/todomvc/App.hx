@@ -1,12 +1,12 @@
 package todomvc;
 
-import starlight.lens.Lens;
+import starlight.view.View;
 import js.html.InputElement;
 import js.html.DOMElement;
 
 using StringTools;
 
-class App extends Lens {
+class App extends View {
     static inline var ENTER_KEY = 13;
     static inline var ESCAPE_KEY = 27;
 

@@ -1,10 +1,10 @@
-package starlight.lens.tests;
+package starlight.view.tests;
 
-import starlight.lens.VirtualElement.VirtualElementAttributes;
-import starlight.lens.VirtualElement.VirtualElementChildren;
-import starlight.lens.VirtualElement.VirtualElement;
+import starlight.view.VirtualElement.VirtualElementAttributes;
+import starlight.view.VirtualElement.VirtualElementChildren;
+import starlight.view.VirtualElement.VirtualElement;
 
-using starlight.lens.VirtualElement.VirtualElementTools;
+using starlight.view.VirtualElement.VirtualElementTools;
 using StringTools;
 
 class TestVirtualElementTools extends haxe.unit.TestCase {
