@@ -1,12 +1,13 @@
 package todomvc;
 
-import starlight.view.View;
+import starlight.view.View in SLView;
+import starlight.router.HistoryManager;
 import js.html.InputElement;
 import js.html.DOMElement;
 
 using StringTools;
 
-class App extends View {
+class View extends SLView {
     static inline var ENTER_KEY = 13;
     static inline var ESCAPE_KEY = 27;
 
@@ -295,13 +296,17 @@ class App extends View {
             ])
         ];
     }
+}
 
+class App {
     static function main() {
         var store = new Store<Todo>('todomvc');
-        var app = new App(store);
+        var view = new View(store);
 
-        // Normally in Haxe, we interact with external Javascript libraries with an extern class.
-        // However, small interactions can use the magic "untyped __js__()" function.
-        untyped __js__("Router({'/:filter': function (filter) { app.filter = filter; app.render(); } }).init('/all')");
+        var manager = new HistoryManager(function (newHash) {
+            view.filter = newHash;
+            view.render();
+        });
+        manager.init('/all');
     }
 }

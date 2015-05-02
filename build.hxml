@@ -41,5 +41,6 @@
 # -D debugRendering
 -dce full
 -debug
+-lib promhx
 -main todomvc.App
 -js src/examples/todomvc/js/app.js
