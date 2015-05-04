@@ -8,3 +8,12 @@ abstract TypeException(String) {
         this = i;
     }
 }
+
+/*
+ * Used to express improper Type usage at runtime.
+ */
+abstract AbstractionException(String) {
+    public inline function new(i:String) {
+        this = i;
+    }
+}

@@ -6,6 +6,7 @@ import starlight.view.VirtualElement.VirtualElement;
 import starlight.core.Types.UnsafeMap;
 import starlight.core.Types.IntMap;
 import starlight.core.Types.ElementType;
+import starlight.core.Exceptions.AbstractionException;
 
 using VirtualElement.VirtualElementTools;
 
@@ -174,14 +175,8 @@ class View {
         return updates;
     }
 
-    @:keep
     function view():Array<VirtualElement> {
-        return [{
-            id:nodeCounter++,
-            tag:VirtualElementTools.TEXT_TAG,
-            children: [],
-            textValue:Type.getClassName(cast this) + ' does have have a view() method.'
-        }];
+        throw new AbstractionException('Override View.view().');
     }
 
     public function render() {
