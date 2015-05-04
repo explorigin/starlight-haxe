@@ -41,7 +41,7 @@ class VirtualElementTools {
         'wbr'
     ];
 
-    public static var TEXT_TAG = '#text';
+    public inline static var TEXT_TAG = '#text';
 
     static inline public function isVoid(element:VirtualElement):Bool {
         return VOID_TAGNAMES.indexOf(element.tag.toLowerCase()) != -1;
