@@ -4,6 +4,7 @@ import starlight.view.VirtualElement.VirtualElementChildren;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElement;
 import starlight.core.Types.UnsafeMap;
+import starlight.core.Types.IntMap;
 import starlight.core.Types.ElementType;
 
 using VirtualElement.VirtualElementTools;
@@ -32,7 +33,7 @@ class View {
     var e = VirtualElementTools.element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
     var postProcessing = new UnsafeMap();
-    public var elementCache = new haxe.ds.IntMap<ElementType>();
+    public var elementCache = new IntMap();
     public var currentState = new Array<VirtualElement>();
 
     public function new() {

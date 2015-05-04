@@ -83,7 +83,7 @@ class View extends SLView {
             todos.push(todo);
         }
 
-        _input.value = '';
+        el.value = '';
         render();
     }
 

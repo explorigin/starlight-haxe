@@ -8,8 +8,10 @@ package starlight.core;
 
 #if js
 typedef UnsafeMap = haxe.DynamicAccess<Dynamic>;
+typedef IntMap = DynamicIntAccess<Dynamic>;
 #else
 typedef UnsafeMap = haxe.ds.StringMap<Dynamic>;
+typedef IntMap = haxe.ds.IntMap<Dynamic>;
 #end
 
 /*
@@ -21,3 +23,35 @@ typedef UnsafeMap = haxe.ds.StringMap<Dynamic>;
 #else
     typedef ElementType = Dynamic;
 #end
+
+/**
+    A mirror of haxe.DynamicAccess that work for integers
+**/
+abstract DynamicIntAccess<T>(Dynamic<T>) from Dynamic<T> to Dynamic<T> {
+    public inline function new() this = {};
+
+    @:arrayAccess
+    public inline function get(key:Int):Null<T> {
+        #if js
+        return untyped this[key]; // we know it's an object, so we don't need a check
+        #else
+        return Reflect.field(this, Std.string(key));
+        #end
+    }
+
+    @:arrayAccess
+    public inline function set(key:Int, value:T):T {
+        #if js
+        return untyped this[key] = value;
+        #else
+        Reflect.setField(this, Std.string(key), value);
+        return value;
+        #end
+    }
+
+    public inline function exists(key:Int):Bool return Reflect.hasField(this, Std.string(key));
+
+    public inline function remove(key:Int):Bool return Reflect.deleteField(this, Std.string(key));
+
+    public inline function keys():Array<Int> return cast Reflect.fields(this);
+}
