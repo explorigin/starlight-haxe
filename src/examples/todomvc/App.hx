@@ -70,8 +70,8 @@ class View extends SLView {
     }
 
     function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
-        var _input = cast(evt.target, InputElement);
-        var val:String = _input.value;
+        var el:InputElement = cast evt.target;
+        var val:String = el.value;
 
         if (evt.which != ENTER_KEY || val == "") {
             return;
@@ -88,7 +88,7 @@ class View extends SLView {
     }
 
     function onToggleAllChange(evt:Dynamic) {
-        var el = cast(evt.target, js.html.InputElement);
+        var el:InputElement = cast evt.target;
 
         var isChecked = el.checked;
 
@@ -111,7 +111,7 @@ class View extends SLView {
     }
 
     function onToggleChange(evt:Dynamic) {
-        var el = cast(evt.target, js.html.InputElement);
+        var el:InputElement = cast evt.target;
         var i = indexFromEl(el);
         todos[i].completed = el.checked;
         store.update(todos[i]);
@@ -119,7 +119,7 @@ class View extends SLView {
     }
 
     function onLabelClick(evt:Dynamic) {
-        var el = cast(evt.target, js.html.DOMElement);
+        var el:InputElement = cast evt.target;
         editingIndex = indexFromEl(el);
         render();
     }
@@ -162,7 +162,7 @@ class View extends SLView {
     }
 
     function onDestroyClick(evt:Dynamic) {
-        var el = cast(evt.target, js.html.DOMElement);
+        var el:js.html.DOMElement = cast evt.target;
         var i = indexFromEl(el);
         if (store.remove(todos[i].id)) {
             todos.splice(i, 1);
