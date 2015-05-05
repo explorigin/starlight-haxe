@@ -1,26 +1,19 @@
 package starlight.router;
 
 import js.Browser.window;
-import promhx.Stream;
-import promhx.Deferred;
+import msignal.Signal;
 
 using StringTools;
-
-typedef HashUpdateEvent = String;
 
 class HistoryManager {
     var isActive:Bool = false;
     var currentHash:String = '';
 
-    var triggerHashUpdate:Deferred<HashUpdateEvent>;
-    public var onHashUpdate(default, null):Stream<HashUpdateEvent>;
+    public var onHashUpdate(default, null) = new Signal2<String, String>();
 
-    public function new(?defaultHandler:HashUpdateEvent->Void) {
-        triggerHashUpdate = new Deferred<HashUpdateEvent>();
-        onHashUpdate = triggerHashUpdate.stream();
-
+    public function new(?defaultHandler:String->String->Void) {
         if (defaultHandler != null) {
-            onHashUpdate.then(defaultHandler);
+            onHashUpdate.add(defaultHandler);
         }
     }
 
@@ -50,21 +43,15 @@ class HistoryManager {
     function registerChange(newHash) {
         var oldHash = currentHash;
         currentHash = newHash;
-        triggerHashUpdate.resolve(trimHash(newHash)); // FIXME - add the oldHash
+        onHashUpdate.dispatch(trimHash(newHash), trimHash(oldHash));
     }
 
     static function getWindowHash() {
         var hash = window.location.hash.urlDecode();
-        if (hash.charAt(0) == '#') {
-            hash = hash.substr(1);
-        }
-        return hash;
+        return if (hash.charAt(0) == '#') hash.substr(1) else hash;
     }
 
-    static function trimHash(hash:String) {
-        if (hash.charAt(0) == '/') {
-            hash = hash.substr(1);
-        }
-        return hash;
+    static inline function trimHash(hash:String) {
+        return if (hash.charAt(0) == '/') hash.substr(1) else hash;
     }
 }

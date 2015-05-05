@@ -1,17 +1,21 @@
 package starlight.test;
 
+import starlight.core.Types.IntMap;
+
+using Lambda;
+
 class FrontendTestCase extends TestCase {
-    public var elementCache = new haxe.ds.IntMap<starlight.core.Types.ElementType>();
+    public var elementCache = new IntMap();
 
     public override function tearDown() {
-        var i = elementCache.keys();
+        var i = Reflect.fields(elementCache).iterator();
         while(i.hasNext()) {
             var key = i.next();
-            var el = elementCache.get(key);
-            elementCache.remove(key);
+            var el = Reflect.field(elementCache, key);
+            Reflect.deleteField(elementCache, key);
 #if js
             try {
-                el.parentElement.removeChild(el);
+                untyped el.parentElement.removeChild(el);
             } catch (e:Dynamic) {
                 // We don't care
             }

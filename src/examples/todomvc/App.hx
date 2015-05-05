@@ -303,7 +303,7 @@ class App {
         var store = new Store<Todo>('todomvc');
         var view = new View(store);
 
-        var manager = new HistoryManager(function (newHash) {
+        var manager = new HistoryManager(function (newHash, oldHash) {
             view.filter = newHash;
             view.render();
         });
