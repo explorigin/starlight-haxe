@@ -42,7 +42,8 @@ class ViewModel extends View {
         clickCount++;
     }
 
-    public override function view() {
+    @:view
+    override function view() {
         return [
             e('header.title', if (clickCount > 0) '$title - clicked $clickCount times.' else title),
             e('section', [
@@ -52,7 +53,8 @@ class ViewModel extends View {
     }
 }
 
-View.apply(new ViewModel());
+var view = new ViewModel();
+view.render();
 ```
 
 ### Payload
