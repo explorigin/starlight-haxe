@@ -13,64 +13,10 @@ using tink.MacroApi;
 using haxe.macro.ExprTools;
 using starlight.view.VirtualElement.VirtualElementTools;
 
-typedef ViewContext = {
-    expr: Expr,
-    blocks: Array<Block>
-}
-
-// typedef Cell = {
-//     tag: String,
-//     attrs: Dynamic,
-//     children: Dynamic//Array<Dynamic>
-// }
-
-enum Block {
-    ElementBlock(data: Element, pos: PosInfo);
-    ExprBlock(e: Expr, pos: PosInfo);
-}
-
-// typedef BlockWithChildren = {
-//     block: Block,
-//     children: Array<BlockWithChildren>,
-//     indent: Int,
-//     line: Int,
-//     parent: BlockWithChildren
-// }
-
-typedef Selector = {
-    tag: String,
-    classes: Array<String>,
-    id: String
-}
-
-typedef Element = {
-    selector: Selector,
-    attributes: Null<Expr>,
-    inlineAttributes: Array<InlineAttribute>,
-    content: Null<Expr>
-}
-
-typedef PosInfo = {
-    file: String,
-    line: Int,
-    start: Int,
-    end: Int
-}
-
-typedef InlineAttribute = {
-    attr: String,
-    value: Expr
-}
-
-// typedef ObjField = {field : String, expr : Expr};
-
-typedef Lines = Map<Int, Int>;
 #end
 
 class ViewBuilder {
     #if macro
-    static var lines: Lines;
-
     macro static public function build(): Array<Field> {
         return Context.getBuildFields().map(findViewFields);
     }
@@ -116,8 +62,7 @@ class ViewBuilder {
 
         return macro untyped {
             tag: ${tagName},
-            textValue: $expr,
-            children: []
+            textValue: $expr
         };
     }
 

@@ -163,19 +163,18 @@ class View {
 
 #if pluginSupport
             updates = updates.concat(
+#end
                 update(
-                    if (next == null) [] else next.children,
-                    if (current == null) [] else current.children,
+                    if (next == null || next.children == null) [] else next.children,
+                    if (current == null || current.children == null) [] else current.children,
                     currentElementId
                 )
+#if pluginSupport
             );
 #else
-            update(
-                if (next == null) [] else next.children,
-                if (current == null) [] else current.children,
-                currentElementId
-            );
+            ;
 #end
+
             if (changingSelectValue) {
                 var attrs = new VirtualElementAttributes();
                 attrs.set('value', next.attrs.get('value'));
