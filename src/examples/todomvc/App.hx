@@ -170,6 +170,7 @@ class View extends SLView {
         render();
     }
 
+    @:view
     override function view() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
@@ -202,47 +203,6 @@ class View extends SLView {
                         ''
                 ]);
         }
-
-        // var view =
-        //     @section('#todoapp')
-        //         @header('#header')
-        //             @h1()
-        //                 'todos'
-        //             @input('#new-todo', placeholder="What needs to be done?", autofocus=true)
-        //         @section('#main', class=if (todoCount == 0) "hidden" else "")
-        //             @input('#toggle-all', type="checkbox")
-        //             @label(for="toggle-all")
-        //                 "Mark all as complete"
-        //             @ul('#todo-list')
-        //                 [for (item in todos) itemView(item)]
-        //         @footer('#footer', class=if (todoCount == 0) "hidden" else "")
-        //             @span('#todo-count')
-        //                 @strong
-        //                     activeTodoCount
-        //                 if (activeTodoCount != 1) ' items left' else ' item left'
-        //             @ul('#filters')
-        //                 @li
-        //                     @a(href="#/all", class=if (filter == 'all') "selected" else "")
-        //                     "All"
-        //                 @li
-        //                     @a(href="#/active", class=if (filter == 'active') "selected" else "")
-        //                     "Active"
-        //                 @li
-        //                     @a(href="#/completed", class=if (filter == 'completed') "selected" else "")
-        //                     "Completed"
-        //             @button('#clear-completed', class=if (completedTodos == 0) "hidden" else "")
-        //                 'Clear completed (' + completedTodos + ')')
-        //     @footer('#info')
-        //         @p
-        //             'Double-click to edit a todo'
-        //         @p
-        //             'Created by '
-        //             @a(href="http://sindresorhus.com")
-        //                 "Sindre Sorhus"
-        //         @p
-        //             'Ported to Starlight by '
-        //             @a(href="http://github.com/explorigin")
-        //                 "Timothy Farrell"
 
         return [
             e('section#todoapp', [

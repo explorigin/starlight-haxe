@@ -42,5 +42,6 @@
 -dce full
 -debug
 -lib msignal
+-lib tink_macro
 -main todomvc.App
 -js src/examples/todomvc/js/app.js

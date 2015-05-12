@@ -27,6 +27,7 @@ typedef ElementUpdate = {
     ?newIndex:Int
 }
 
+@:autoBuild(starlight.view.macro.ViewBuilder.build())
 class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
@@ -42,6 +43,20 @@ class View {
         this.root = js.Browser.document.body;
 #end
     };
+
+    private function buildClassString(obj:UnsafeMap):String {
+        var classes:Array<String> = [];
+#if js
+        var keys:Array<String> = untyped __js__("Object").keys(obj);
+        for (key in keys)
+            if (obj[key] == true)
+                classes.push(key);
+#else
+        classes = [for (key in obj.keys()) if (obj.get(key) == true) key];
+#end
+
+        return classes.join(' ');
+    }
 
     /*
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
