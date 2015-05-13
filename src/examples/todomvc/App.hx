@@ -41,23 +41,6 @@ class View extends SLView {
         });
     }
 
-    function findParent(el:DOMElement, parentTagName:String) {
-        el = el.parentElement;
-        parentTagName = parentTagName.toUpperCase();
-
-        while (true) {
-            if (el.tagName == parentTagName) {
-                return el;
-            }
-
-            el = el.parentElement;
-
-            if (el == js.Browser.document.body) {
-                throw "No element by that tag.";
-            }
-        }
-    }
-
     function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
         var el:InputElement = cast evt.target;
         var val:String = el.value;
