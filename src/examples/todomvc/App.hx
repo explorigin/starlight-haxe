@@ -58,18 +58,6 @@ class View extends SLView {
         }
     }
 
-    function indexFromEl(el:DOMElement) {
-        var id:Int = Std.parseInt(findParent(el, 'li').dataset.id);
-        var i = todos.length;
-
-        while (i-- != 0) {
-            if (todos[i].id == id) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
     function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
         var el:InputElement = cast evt.target;
         var val:String = el.value;
@@ -111,18 +99,20 @@ class View extends SLView {
         render();
     }
 
-    function onToggleChange(evt:Dynamic) {
-        var el:InputElement = cast evt.target;
-        var i = indexFromEl(el);
-        todos[i].completed = el.checked;
-        store.update(todos[i]);
-        render();
+    function onToggleChangeFactory(index:Int) {
+        return function onToggleChange(evt:Dynamic) {
+            var el:InputElement = cast evt.target;
+            todos[index].completed = el.checked;
+            store.update(todos[index]);
+            render();
+        }
     }
 
-    function onLabelClick(evt:Dynamic) {
-        var el:InputElement = cast evt.target;
-        editingIndex = indexFromEl(el);
-        render();
+    function onLabelClickFactory(index:Int) {
+        return function onLabelClick(evt:Dynamic) {
+            editingIndex = index;
+            render();
+        }
     }
 
     function onEditKeyUp(evt:Dynamic) {
@@ -136,39 +126,41 @@ class View extends SLView {
         }
     }
 
-    function onEditBlur(evt:Dynamic) {
-        var el:InputElement = cast evt.target;
-        var i = indexFromEl(el);
-        var val = el.value.trim();
+    function onEditBlurFactory(index:Int) {
+        return function onEditBlur(evt:Dynamic) {
+            var el:InputElement = cast evt.target;
+            var val = el.value.trim();
 
-        editingIndex = -1;
+            editingIndex = -1;
 
-        if (evt.target.dataset.abort == 'true') {
-            evt.target.dataset.abort = 'false';
-            el.value = todos[i].title;
-            render();
-            return;
-        }
-
-        if (val != '') {
-            todos[i].title = val;
-            store.update(todos[i]);
-        } else {
-            if (store.remove(todos[i].id)) {
-                todos.splice(i, 1);
+            if (evt.target.dataset.abort == 'true') {
+                evt.target.dataset.abort = 'false';
+                el.value = todos[index].title;
+                render();
+                return;
             }
-        }
 
-        render();
+            if (val != '') {
+                todos[index].title = val;
+                store.update(todos[index]);
+            } else {
+                if (store.remove(todos[index].id)) {
+                    todos.splice(index, 1);
+                }
+            }
+
+            render();
+        }
     }
 
-    function onDestroyClick(evt:Dynamic) {
-        var el:js.html.DOMElement = cast evt.target;
-        var i = indexFromEl(el);
-        if (store.remove(todos[i].id)) {
-            todos.splice(i, 1);
+    function onDestroyClickFactory(index:Int) {
+        return function onDestroyClick(evt:Dynamic) {
+            var el:js.html.DOMElement = cast evt.target;
+            if (store.remove(todos[index].id)) {
+                todos.splice(index, 1);
+            }
+            render();
         }
-        render();
     }
 
     @:view
@@ -195,16 +187,16 @@ class View extends SLView {
                         e('input.toggle', {
                             type:"checkbox",
                             checked: item.completed,
-                            onchange: onToggleChange
+                            onchange: onToggleChangeFactory(index)
                         }),
-                        e('label', {onclick: onLabelClick}, item.title),
-                        e('button.destroy', {onclick: onDestroyClick})
+                        e('label', {onclick: onLabelClickFactory(index)}, item.title),
+                        e('button.destroy', {onclick: onDestroyClickFactory(index)})
                     ]),
                     if (index == editingIndex)
                         e('input.edit', {
                             value: item.title,
                             onkeyup: onEditKeyUp,
-                            onblur: onEditBlur,
+                            onblur: onEditBlurFactory(index),
                             focus: true,
                             select: true
                         })
