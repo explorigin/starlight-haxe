@@ -5,7 +5,8 @@ import starlight.router.HistoryManager;
 import js.html.InputElement;
 import js.html.DOMElement;
 
-using StringTools;
+using starlight.core.StringTools;
+using starlight.core.ArrayTools;
 
 class View extends SLView {
     static inline var ENTER_KEY = 13;
@@ -171,13 +172,21 @@ class View extends SLView {
     }
 
     @:view
+    inline function filterEntry(item) {
+        return e('li', [
+            e('a', {href:"#/" + item, "class":{selected: filter == item}}, item.toUpperCase())
+        ]);
+    }
+
+    @:view
     override function view() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
         var activeTodoCount = getActiveTodos().length;
         var completedTodos = todoCount - activeTodoCount;
+        var filters = ['all', 'active', 'completed'];
 
-        function itemView(index:Int, item:Todo) {
+        function itemView(item:Todo, ?index:Int) {
             return e('li', {
                     "data-id":item.id,
                     "class":{completed: item.completed, editing: index == editingIndex}
@@ -217,24 +226,14 @@ class View extends SLView {
                 e('section#main', {"class":{hidden: todoCount == 0}}, [
                     e('input#toggle-all', {"type":"checkbox", onchange:onToggleAllChange}),
                     e('label', {"for":"toggle-all"}, "Mark all as complete"),
-                    e('ul#todo-list', [for (i in 0...currentTodos.length) itemView(i, currentTodos[i])])
+                    e('ul#todo-list', currentTodos.mapi(itemView))
                 ]),
                 e('footer#footer', {"class":if (todoCount == 0) "hidden" else ""}, [
                     e('span#todo-count', [
                         e('strong', activeTodoCount),
                         if (activeTodoCount != 1) ' items left' else ' item left'
                     ]),
-                    e('ul#filters', [
-                        e('li', [
-                            e('a', {href:"#/all", "class":{selected: filter == 'all'}}, "All")
-                        ]),
-                        e('li', [
-                            e('a', {href:"#/active", "class": {selected: filter == 'active'}}, "Active")
-                        ]),
-                        e('li', [
-                            e('a', {href:"#/completed", "class":{selected: filter == 'completed'}}, "Completed")
-                        ])
-                    ]),
+                    e('ul#filters', filters.map(filterEntry)),
                     e('button#clear-completed',
                       {
                         "class":{hidden: completedTodos == 0},

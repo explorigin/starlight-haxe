@@ -3,6 +3,8 @@ package starlight.view;
 import starlight.core.Types.UnsafeMap;
 import starlight.core.Exceptions.TypeException;
 
+using starlight.core.StringTools;
+
 typedef VirtualElementAttributes = UnsafeMap;
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {

@@ -219,7 +219,7 @@ class View {
             if (untyped __js__("attrName in element") && elementPropertyAttributes.indexOf(attrName) == -1) {
                 if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
                     var field = untyped __js__("element[attrName]");
-                    if (untyped __js__("typeof field") == 'function' && attrName.substr(0, 2) != "on") {
+                    if (untyped __js__("typeof field") == 'function' && attrName.indexOf("on") != 0) {
                         postProcessing.set(attrName, id);
                     } else {
                         untyped __js__("element[attrName] = value");

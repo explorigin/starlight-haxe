@@ -38,6 +38,7 @@
 -cp src/examples
 -D js-es5
 -D pluginSupport
+-D analyzer
 # -D debugRendering
 -dce full
 -debug

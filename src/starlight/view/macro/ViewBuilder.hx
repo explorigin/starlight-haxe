@@ -73,6 +73,7 @@ class ViewBuilder {
         var childrenExpr;
         var tagName:String;
         var tagPos:haxe.macro.Position;
+        var matchChildren = true;
 
         if (paramArray.length >= 1) {
             switch(paramArray[0]) {
@@ -94,11 +95,18 @@ class ViewBuilder {
                     }
                 //  e('signature', {})
                 case {expr: EBlock(_), pos: _}:
+                //  e('signature', func())
+                case {expr: ECall(_), pos: _}:
+                    matchChildren = false;
+                    childrenExpr = paramArray[1];
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
-                    childrenExpr = paramArray[1].map(matchElementCallsAndStrings);
+                    childrenExpr = paramArray[1];
                 //  e('signature', ?)
-                case {expr: _, pos: ePos}:
+                case {expr: EConst(CString(s)), pos: ePos}:
+                    var expr = buildTextElement(paramArray[1]);
+                    childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
+                case {expr: EConst(CIdent(s)), pos: ePos}:
                     var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
                 default:
@@ -122,8 +130,12 @@ class ViewBuilder {
             switch(paramArray[2]) {
                 //  e('signature', ?, [])
                 case {expr: EArrayDecl(_), pos: _}:
-                    childrenExpr = paramArray[2].map(matchElementCallsAndStrings);
-                //  e('signature', ?)
+                    childrenExpr = paramArray[2];
+                //  e('signature', ?, func())
+                case {expr: ECall(_), pos: _}:
+                    matchChildren = false;
+                    childrenExpr = paramArray[1];
+                //  e('signature', ?, ?)
                 case {expr: _, pos: ePos}:
                     var expr = buildTextElement(paramArray[2]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
@@ -165,7 +177,9 @@ class ViewBuilder {
             pos: Context.currentPos()
         };
 
-        childrenExpr = childrenExpr.map(matchElementCallsAndStrings);
+        if (matchChildren) {
+            childrenExpr = childrenExpr.map(matchElementCallsAndStrings);
+        }
 
         return macro untyped {
             tag: ${tagName},

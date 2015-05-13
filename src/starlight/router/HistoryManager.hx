@@ -2,8 +2,7 @@ package starlight.router;
 
 import js.Browser.window;
 import msignal.Signal;
-
-using StringTools;
+import starlight.core.StringTools;
 
 class HistoryManager {
     var isActive:Bool = false;
@@ -47,11 +46,11 @@ class HistoryManager {
     }
 
     static function getWindowHash() {
-        var hash = window.location.hash.urlDecode();
-        return if (hash.charAt(0) == '#') hash.substr(1) else hash;
+        var hash:String = StringTools.urlDecode(window.location.hash);
+        return if (hash.charAt(0) == '#') StringTools.substr(hash, 1, hash.length) else hash;
     }
 
     static inline function trimHash(hash:String) {
-        return if (hash.charAt(0) == '/') hash.substr(1) else hash;
+        return if (hash.charAt(0) == '/') StringTools.substr(hash, 1, hash.length) else hash;
     }
 }
