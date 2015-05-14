@@ -42,4 +42,8 @@ class StringTools {
         return HaxeStringTools.urlDecode(s);
 #end
     }
+
+    public inline static function toTitleCase(s:String) {
+        return [for (word in s.split(' ')) word.charAt(0).toUpperCase() + StringTools.substr(word, 1, word.length)].join(' ');
+    }
 }
