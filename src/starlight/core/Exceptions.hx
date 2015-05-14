@@ -17,3 +17,13 @@ abstract AbstractionException(String) {
         this = i;
     }
 }
+
+
+/*
+ * Used to express a missing feature.
+ */
+abstract NotImplementedException(String) {
+    public inline function new(i:String) {
+        this = i;
+    }
+}

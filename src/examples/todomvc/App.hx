@@ -153,19 +153,22 @@ class View extends SLView {
     }
 
     @:view
-    inline function filterEntry(item) {
-        return e('li', [
-            e('a', {href:"#/" + item, "class":{selected: filter == item}}, item.toUpperCase())
-        ]);
-    }
-
-    @:view
     override function view() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
         var activeTodoCount = getActiveTodos().length;
         var completedTodos = todoCount - activeTodoCount;
-        var filters = ['all', 'active', 'completed'];
+        var filters = [
+            {name:'all', label:'All'},
+            {name:'active', label:'Active'},
+            {name:'completed', label:'Completed'}
+        ];
+
+        function filterEntry(item) {
+            return e('li', [
+                e('a', {href:"#/" + item.name, "class":{selected: filter == item.name}}, item.label)
+            ]);
+        }
 
         function itemView(item:Todo, ?index:Int) {
             return e('li', {

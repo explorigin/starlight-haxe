@@ -9,7 +9,7 @@ typedef VirtualElementAttributes = UnsafeMap;
 typedef VirtualElementChildren = Array<VirtualElement>;
 typedef VirtualElement = {
     tag:String,
-    children:VirtualElementChildren,
+    ?children:VirtualElementChildren,
     ?id:Int,
     ?attrs:VirtualElementAttributes,
     ?textValue:String

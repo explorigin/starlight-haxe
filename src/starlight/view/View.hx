@@ -70,6 +70,22 @@ class View {
         return classes.join(' ');
     }
 
+    private function _buildChildren(result):Array<VirtualElement> {
+        // In some cases, it is impossible to know at compile-type what some template values are.  In these cases, we punt to runtime.
+        // TODO - Is it really?  Ask if we can determine function return type at macro compile time in ViewBuilder.
+        var retVal = new Array<VirtualElement>();
+#if js
+        if (untyped __js__('Array').isArray(result)) {
+            retVal = cast result;
+        } else if (untyped __js__('typeof result') == 'string') {
+            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: result}];
+        }
+#else
+        throw starlight.core.Exceptions.NotImplementedException('_buildChildren not implemented for non-JS targets');
+#end
+        return retVal;
+    }
+
     /*
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`

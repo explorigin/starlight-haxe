@@ -22,13 +22,13 @@ class ViewBuilder {
     macro static public function build(): Array<Field> {
         var fields = Context.getBuildFields();
         for (field in fields) {
-            switch(field) {
-                case {kind: FProp(_, _, _, _), name: name}:
-                    ViewBuilder.propertyMap.set(name, 1);
+            switch(field.kind) {
+                case FProp(_, _, _, _):
+                    ViewBuilder.propertyMap.set(field.name, 1);
                 default:
             }
         }
-        return [for (field in fields.iterator()) findViewFields(field)];
+        return fields.map(findViewFields);
     }
 
     static function findViewFields(field: Field) {
@@ -108,7 +108,8 @@ class ViewBuilder {
                 //  e('signature', func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = paramArray[1];
+                    childrenExpr = macro _buildChildren(untyped ${paramArray[1]});
+
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
                     childrenExpr = paramArray[1];
@@ -144,7 +145,7 @@ class ViewBuilder {
                 //  e('signature', ?, func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = paramArray[1];
+                    childrenExpr = macro _buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
                 case {expr: _, pos: ePos}:
                     var expr = buildTextElement(paramArray[2]);
