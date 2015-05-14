@@ -12,16 +12,26 @@ class View extends SLView {
     static inline var ENTER_KEY = 13;
     static inline var ESCAPE_KEY = 27;
 
-    public var filter:String = 'all';
-    var editingIndex:Int = -1;
-    var todos:Array<Todo> = new Array<Todo>();
+    public var filter = 'all';
+    var editingIndex = -1;
+    var todos = new Array<Todo>();
     var store:Store<Todo>;
+    var newTodoValue(default, set) = "";
+    var editTodoValue(default, set) = "";
 
     public function new(store:Store<Todo>) {
         super();
 
         this.store = store;
         todos = this.store.findAll();
+    }
+
+    function set_newTodoValue(value) {
+        return newTodoValue = value;
+    }
+
+    function set_editTodoValue(value) {
+        return editTodoValue = value;
     }
 
     function getFilteredTodos() {
@@ -42,20 +52,17 @@ class View extends SLView {
     }
 
     function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
-        var el:InputElement = cast evt.target;
-        var val:String = el.value;
-
-        if (evt.which != ENTER_KEY || val == "") {
+        if (evt.which != ENTER_KEY || newTodoValue == "") {
             return;
         }
 
-        var todo = new Todo(val);
+        var todo = new Todo(newTodoValue);
 
         if(store.add(todo)) {
             todos.push(todo);
         }
 
-        el.value = '';
+        newTodoValue = '';
         render();
     }
 
@@ -94,6 +101,7 @@ class View extends SLView {
     function onLabelClickFactory(index:Int) {
         return function onLabelClick(evt:Dynamic) {
             editingIndex = index;
+            editTodoValue = todos[index].title;
             render();
         }
     }
@@ -111,14 +119,13 @@ class View extends SLView {
 
     function onEditBlurFactory(index:Int) {
         return function onEditBlur(evt:Dynamic) {
-            var el:InputElement = cast evt.target;
-            var val = el.value.trim();
+            var val = editTodoValue.trim();
 
             editingIndex = -1;
 
             if (evt.target.dataset.abort == 'true') {
                 evt.target.dataset.abort = 'false';
-                el.value = todos[index].title;
+                editTodoValue = todos[index].title;
                 render();
                 return;
             }
@@ -137,8 +144,7 @@ class View extends SLView {
     }
 
     function onDestroyClickFactory(index:Int) {
-        return function onDestroyClick(evt:Dynamic) {
-            var el:js.html.DOMElement = cast evt.target;
+        return function onDestroyClick() {
             if (store.remove(todos[index].id)) {
                 todos.splice(index, 1);
             }
@@ -177,8 +183,9 @@ class View extends SLView {
                     ]),
                     if (index == editingIndex)
                         e('input.edit', {
-                            value: item.title,
+                            value: editTodoValue,
                             onkeyup: onEditKeyUp,
+                            onchange:setValue(editTodoValue),
                             onblur: onEditBlurFactory(index),
                             focus: true,
                             select: true
@@ -195,7 +202,9 @@ class View extends SLView {
                     e('input#new-todo', {
                         placeholder:"What needs to be done?",
                         autofocus:true,
-                        onkeyup:onNewTodoKeyUp
+                        onkeyup:onNewTodoKeyUp,
+                        onchange:setValue(newTodoValue),
+                        value:newTodoValue
                     })
                 ]),
                 e('section#main', {"class":{hidden: todoCount == 0}}, [

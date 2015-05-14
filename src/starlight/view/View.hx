@@ -27,6 +27,8 @@ typedef ElementUpdate = {
     ?newIndex:Int
 }
 
+typedef PropertySetter<T> = T->T;
+
 @:autoBuild(starlight.view.macro.ViewBuilder.build())
 class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
@@ -44,7 +46,17 @@ class View {
 #end
     };
 
-    private function buildClassString(obj:UnsafeMap):String {
+#if js
+    function setValue<T>(prop:PropertySetter<T>) {
+        // Mithril has m.withAttr(field, prop).  I'll change this when I find a use-case for updating anything other than value.
+        return function(evt:js.html.KeyboardEvent) {
+            var el:js.html.InputElement = cast evt.target;
+            prop(cast el.value);
+        }
+    }
+#end
+
+    private function _buildClassString(obj:UnsafeMap):String {
         var classes:Array<String> = [];
 #if js
         var keys:Array<String> = untyped __js__("Object").keys(obj);

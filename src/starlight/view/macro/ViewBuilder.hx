@@ -16,9 +16,19 @@ using starlight.view.VirtualElement.VirtualElementTools;
 #end
 
 class ViewBuilder {
+    public static var propertyMap = new haxe.ds.StringMap<Int>();
+
     #if macro
     macro static public function build(): Array<Field> {
-        return Context.getBuildFields().map(findViewFields);
+        var fields = Context.getBuildFields();
+        for (field in fields) {
+            switch(field) {
+                case {kind: FProp(_, _, _, _), name: name}:
+                    ViewBuilder.propertyMap.set(name, 1);
+                default:
+            }
+        }
+        return [for (field in fields.iterator()) findViewFields(field)];
     }
 
     static function findViewFields(field: Field) {
@@ -164,8 +174,21 @@ class ViewBuilder {
                     case {expr: EObjectDecl(fields), pos: oPos}:
                         value = {
                             field:'class',
-                            expr: macro buildClassString(untyped ${value.expr})
+                            expr: macro _buildClassString(untyped ${value.expr})
                         }
+                    default:
+                };
+                objfields.push(value);
+            } else if (key.indexOf('on') == 0) {
+                switch(value.expr) {
+                    case {expr: ECall({expr: EConst(CIdent('setValue')), pos: iPos}, params), pos: cPos}:
+                        value.expr = {
+                            expr: ECall(
+                                {expr: EConst(CIdent('setValue')), pos: iPos},
+                                [for (p in params) convertPropertyReferenceToSetterForEvents(p)]
+                            ),
+                            pos: cPos
+                        };
                     default:
                 };
                 objfields.push(value);
@@ -186,6 +209,18 @@ class ViewBuilder {
             attrs: $attrExpr,
             children: $childrenExpr
         };
+    }
+
+    static function convertPropertyReferenceToSetterForEvents(param:Expr) {
+        return switch(param) {
+            case {expr: EConst(CIdent(potentialProperty)), pos:pPos}:
+                if (ViewBuilder.propertyMap.exists(potentialProperty))
+                    {expr: EConst(CIdent('set_$potentialProperty')), pos:pPos}
+                else
+                    {expr: EConst(CIdent(potentialProperty)), pos:pPos}
+            default:
+                param;
+        }
     }
 
     static function makeField(key, value) {
