@@ -248,29 +248,27 @@ class VirtualElementTools {
         };
     }
 
-#if (js || macro)
-    macro public static inline function keys(obj:ExprOf<UnsafeMap>) {
-        return macro (untyped __js__('Object.keys')($obj):Array<String>);
-    }
-
-    macro public static inline function count(obj:ExprOf<UnsafeMap>) {
-        return macro (untyped __js__('Object.keys'))($obj).length;
-    }
-
-    macro public static function values(obj:ExprOf<UnsafeMap>) {
-        return macro [for (key in (untyped __js__('Object.keys')($obj):Array<Dynamic>)) ((cast $obj)[untyped __js__('key')])];
-    }
+    public static inline function keys(obj:UnsafeMap):Array<String> {
+#if js
+        return (untyped Object).keys(obj);
 #else
-    public static inline function keys(obj:UnsafeMap) {
         return obj.keys();
+#end
     }
 
-    public static inline function count(obj:UnsafeMap) {
+    public static inline function count(obj:UnsafeMap):Int {
+#if js
+        return (untyped Object).keys(obj).length;
+#else
         return [for (key in obj.keys()) 1].length;
+#end
     }
 
     public static function values(obj:UnsafeMap) {
+#if js
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) key];
+#else
         return [for (key in obj.keys()) obj.get(key)];
-    }
 #end
+    }
 }
