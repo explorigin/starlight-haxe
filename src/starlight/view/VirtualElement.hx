@@ -105,10 +105,14 @@ class VirtualElementTools {
         if (untyped __js__('Array').isArray(result)) {
             retVal = cast result;
         } else if (untyped __js__('typeof result') == 'string') {
-            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: result}];
+            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: cast result}];
         }
 #else
-        throw starlight.core.Exceptions.NotImplementedException('_buildChildren not implemented for non-JS targets');
+        if (Type.getClass(result) == Array) {
+            retVal = cast result;
+        } else {
+            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: cast result}];
+        }
 #end
         return retVal;
     }
