@@ -34,15 +34,5 @@
 
 --next
 
--cp src
--cp src/examples
--D js-es5
--D pluginSupport
--D analyzer
-# -D debugRendering
--dce full
--debug
--lib msignal
--lib tink_macro
--main todomvc.App
--js src/examples/todomvc/js/app.js
+-cmd cd src/examples/todomvc
+-cmd haxe build.hxml
