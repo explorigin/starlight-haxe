@@ -16,22 +16,14 @@ class View extends SLView {
     var editingIndex = -1;
     var todos = new Array<Todo>();
     var store:Store<Todo>;
-    var newTodoValue(default, set) = "";
-    var editTodoValue(default, set) = "";
+    var newTodoValue = "";
+    var editTodoValue = "";
 
     public function new(store:Store<Todo>) {
         super();
 
         this.store = store;
         todos = this.store.findAll();
-    }
-
-    function set_newTodoValue(value) {
-        return newTodoValue = value;
-    }
-
-    function set_editTodoValue(value) {
-        return editTodoValue = value;
     }
 
     function getFilteredTodos() {

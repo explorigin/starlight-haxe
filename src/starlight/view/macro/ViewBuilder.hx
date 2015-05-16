@@ -16,7 +16,7 @@ using starlight.view.VirtualElement.VirtualElementTools;
 #end
 
 class ViewBuilder {
-    public static var propertyMap = new haxe.ds.StringMap<Int>();
+    public static var fieldMap = new haxe.ds.StringMap<Bool>();
 
     #if macro
     macro static public function build(): Array<Field> {
@@ -24,11 +24,52 @@ class ViewBuilder {
         for (field in fields) {
             switch(field.kind) {
                 case FProp(_, _, _, _):
-                    ViewBuilder.propertyMap.set(field.name, 1);
+                    ViewBuilder.fieldMap.set(field.name, true);
+                default:
+                    ViewBuilder.fieldMap.set(field.name, false);
+            }
+        }
+
+        return convertVarsToProperties(fields.map(findViewFields));
+    }
+
+    static function convertVarsToProperties(fields: Array<Field>):Array<Field> {
+        var newFields = new Array<Field>();
+
+        for (member in fields) {
+            switch (member.kind) {
+                case FieldType.FVar(cType, expr):
+                    var name = member.name;
+
+                    if (!ViewBuilder.fieldMap.exists(member.name) || ViewBuilder.fieldMap.get(member.name) == false) {
+                        continue;
+                    }
+
+                    var field = ['this', name].drill();
+                    var frun = FieldType.FFun({
+                        ret: macro :String,
+                        params: [],
+                        expr: macro return ${field.assign('value'.resolve())},
+                        args: [{name: 'value', type: null, opt: false, value: null }]
+                    });
+
+                    var setter = {
+                        kind: frun,
+                        meta: [],
+                        name: 'set_$name',
+                        doc: null,
+                        pos: Context.currentPos(),
+                        access: [APrivate]
+                    };
+                    newFields.push(setter);
+
+                    member.addMeta(':isVar', member.pos);
+                    member.kind = FProp('default', 'set_$name', cType, expr);
                 default:
             }
         }
-        return fields.map(findViewFields);
+
+        return fields.concat(newFields);
     }
 
     static function findViewFields(field: Field) {
@@ -213,15 +254,24 @@ class ViewBuilder {
     }
 
     static function convertPropertyReferenceToSetterForEvents(param:Expr) {
-        return switch(param) {
+        var eventTarget:Expr;
+
+        switch(param) {
             case {expr: EConst(CIdent(potentialProperty)), pos:pPos}:
-                if (ViewBuilder.propertyMap.exists(potentialProperty))
-                    {expr: EConst(CIdent('set_$potentialProperty')), pos:pPos}
-                else
-                    {expr: EConst(CIdent(potentialProperty)), pos:pPos}
+                if (ViewBuilder.fieldMap.exists(potentialProperty)) {
+                    if (ViewBuilder.fieldMap.get(potentialProperty) == false) {
+                        ViewBuilder.fieldMap.set(potentialProperty, true);
+                    }
+                    eventTarget = {expr: EConst(CIdent('set_$potentialProperty')), pos:pPos}
+                } else {
+                    Context.warning('calling setValue($potentialProperty) where "$potentialProperty" is not a field of this class;', pPos);
+                    eventTarget = {expr: EConst(CIdent(potentialProperty)), pos:pPos};
+                }
             default:
                 param;
         }
+
+        return eventTarget;
     }
 
     static function makeField(key, value) {
