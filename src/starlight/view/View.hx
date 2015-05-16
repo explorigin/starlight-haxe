@@ -55,7 +55,7 @@ class View {
 
     private function _buildClassString(obj:UnsafeMap):String {
 #if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (obj.get(key) == true) key];
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (obj.get(key) == true) key].join(' ');
 #else
         return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
 #end
@@ -89,11 +89,7 @@ class View {
         var nextStateItems = nextState.length;
 
         inline function place(func:ElementUpdate->Void, upd:ElementUpdate) {
-#if pluginSupport
             updates.push(upd);
-#else
-            func(upd);
-#end
         }
 
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
@@ -180,19 +176,13 @@ class View {
             }
             next.id = currentElementId;
 
-#if pluginSupport
             updates = updates.concat(
-#end
                 update(
                     if (next == null || next.children == null) [] else next.children,
                     if (current == null || current.children == null) [] else current.children,
                     currentElementId
                 )
-#if pluginSupport
             );
-#else
-            ;
-#end
 
             if (changingSelectValue) {
                 var attrs = new VirtualElementAttributes();
@@ -214,11 +204,7 @@ class View {
 
     public function render() {
         var nextState = view();
-#if pluginSupport
         consumeUpdates(update(nextState, currentState));
-#else
-        update(nextState, currentState);
-#end
         currentState = nextState;
     }
 
