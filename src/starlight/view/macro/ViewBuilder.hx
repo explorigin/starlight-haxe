@@ -149,7 +149,7 @@ class ViewBuilder {
                 //  e('signature', func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro _buildChildren(untyped ${paramArray[1]});
+                    childrenExpr = macro starlight.view.VirtualElement.VirtualElementTools.buildChildren(untyped ${paramArray[1]});
 
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
@@ -186,7 +186,7 @@ class ViewBuilder {
                 //  e('signature', ?, func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro _buildChildren(untyped ${paramArray[2]});
+                    childrenExpr = macro starlight.view.VirtualElement.VirtualElementTools.buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
                 case {expr: _, pos: ePos}:
                     var expr = buildTextElement(paramArray[2]);
@@ -216,7 +216,7 @@ class ViewBuilder {
                     case {expr: EObjectDecl(fields), pos: oPos}:
                         value = {
                             field:'class',
-                            expr: macro _buildClassString(untyped ${value.expr})
+                            expr: macro starlight.view.VirtualElement.VirtualElementTools.buildClassString(untyped ${value.expr})
                         }
                     default:
                 };

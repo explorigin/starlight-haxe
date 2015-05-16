@@ -88,6 +88,31 @@ class VirtualElementTools {
         return false;
     }
 
+
+    public static function buildClassString(obj:UnsafeMap):String {
+#if js
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (obj.get(key) == true) key].join(' ');
+#else
+        return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
+#end
+    }
+
+    public static function buildChildren(result):Array<VirtualElement> {
+        // In some cases, it is impossible to know at compile-type what some template values are.  In these cases, we punt to runtime.
+        // TODO - Is it really?  Ask if we can determine function return type at macro compile time in ViewBuilder.
+        var retVal = new Array<VirtualElement>();
+#if js
+        if (untyped __js__('Array').isArray(result)) {
+            retVal = cast result;
+        } else if (untyped __js__('typeof result') == 'string') {
+            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: result}];
+        }
+#else
+        throw starlight.core.Exceptions.NotImplementedException('_buildChildren not implemented for non-JS targets');
+#end
+        return retVal;
+    }
+
     /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
         var tagName = 'div';
