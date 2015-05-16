@@ -252,7 +252,7 @@ class VirtualElementTools {
 #if js
         return (untyped Object).keys(obj);
 #else
-        return obj.keys();
+        return [for (key in obj.keys()) key];
 #end
     }
 
