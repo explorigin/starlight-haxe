@@ -46,28 +46,19 @@ class View {
 #end
     };
 
-#if js
-    function setValue<T>(prop:PropertySetter<T>) {
+    private function setValue<T>(prop:PropertySetter<T>) {
         // Mithril has m.withAttr(field, prop).  I'll change this when I find a use-case for updating anything other than value.
-        return function(evt:js.html.KeyboardEvent) {
-            var el:js.html.InputElement = cast evt.target;
-            prop(cast el.value);
+        return function(evt:{target: {value: T}}) {
+            prop(evt.target.value);
         }
     }
-#end
 
     private function _buildClassString(obj:UnsafeMap):String {
-        var classes:Array<String> = [];
 #if js
-        var keys:Array<String> = untyped __js__("Object").keys(obj);
-        for (key in keys)
-            if (obj[key] == true)
-                classes.push(key);
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (obj.get(key) == true) key];
 #else
-        classes = [for (key in obj.keys()) if (obj.get(key) == true) key];
+        return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
 #end
-
-        return classes.join(' ');
     }
 
     private function _buildChildren(result):Array<VirtualElement> {
