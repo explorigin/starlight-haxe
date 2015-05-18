@@ -119,7 +119,7 @@ class View {
                 var attrDiff = new VirtualElementAttributes();
                 var attrsAreEqual = true;
 
-                for (key in VirtualElementTools.keys(current.attrs)) {
+                for (key in current.attrs.keys()) {
                     var val;
                     if (next.attrs.exists(key)) {
                         val = next.attrs.get(key);
@@ -131,7 +131,7 @@ class View {
                     attrDiff.set(key, val);
                 }
 
-                for (key in VirtualElementTools.keys(next.attrs)) {
+                for (key in next.attrs.keys()) {
                     if (!attrDiff.exists(key)) {
                         attrDiff.set(key, next.attrs.get(key));
                         attrsAreEqual = false;
@@ -161,12 +161,10 @@ class View {
             );
 
             if (changingSelectValue) {
-                var attrs = new VirtualElementAttributes();
-                attrs.set('value', next.attrs.get('value'));
                 place(updateElement, {
                     action:UpdateElement,
                     elementId:currentElementId,
-                    attrs:attrs
+                    attrs:{value: next.attrs.get('value')}
                 });
             }
         }
@@ -193,7 +191,7 @@ class View {
 
     function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
-        for (attrName in VirtualElementTools.keys(attrs)) {
+        for (attrName in attrs.keys()) {
             var value = attrs.get(attrName);
             // TODO - potential speed optimization. elementPropertiesAttributes might do better broken out to separate conditions
             // FIXME - Normally we would use Reflect but it doesn't compile correctly such that firefox would work.
@@ -290,7 +288,7 @@ class View {
             }
         }
 
-        for (method in VirtualElementTools.keys(postProcessing)) {
+        for (method in postProcessing.keys()) {
             var id = postProcessing.get(method);
 #if debugRendering
             trace('postProcess calling $method on $id');

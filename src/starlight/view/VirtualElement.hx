@@ -276,28 +276,4 @@ class VirtualElementTools {
             children:childArray
         };
     }
-
-    public static inline function keys(obj:UnsafeMap):Array<String> {
-#if js
-        return (untyped Object).keys(obj);
-#else
-        return [for (key in obj.keys()) key];
-#end
-    }
-
-    public static inline function count(obj:UnsafeMap):Int {
-#if js
-        return (untyped Object).keys(obj).length;
-#else
-        return [for (key in obj.keys()) 1].length;
-#end
-    }
-
-    public static function values(obj:UnsafeMap) {
-#if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) key];
-#else
-        return [for (key in obj.keys()) obj.get(key)];
-#end
-    }
 }
