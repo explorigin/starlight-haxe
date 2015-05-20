@@ -21,7 +21,7 @@ class TestViewUpdate extends starlight.test.TestCase {
             }
         }
 
-        return VirtualElementTools.count(a) == VirtualElementTools.count(b);
+        return [for (key in a.keys()) 1].length == [for (key in b.keys()) 1].length;
     }
 
     function assertRemovedUpdate(id, update) {
@@ -35,7 +35,7 @@ class TestViewUpdate extends starlight.test.TestCase {
             assertTrue(attrEquals(attrs, update.attrs));
     }
 
-#if pluginSupport
+#if js
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 

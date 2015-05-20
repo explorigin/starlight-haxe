@@ -164,7 +164,7 @@ class View {
                 place(updateElement, {
                     action:UpdateElement,
                     elementId:currentElementId,
-                    attrs:{value: next.attrs.get('value')}
+                    attrs: cast {value: next.attrs.get('value')}
                 });
             }
         }
@@ -293,8 +293,7 @@ class View {
 #if debugRendering
             trace('postProcess calling $method on $id');
 #end
-            var el = elementCache.get(id);
-            untyped __js__("el")[method]();
+            (untyped elementCache.get(id))[untyped method]();
             postProcessing.remove(method);
         }
 
