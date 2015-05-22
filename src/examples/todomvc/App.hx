@@ -18,6 +18,8 @@ class View extends SLView {
     var store:Store<Todo>;
     var newTodoValue = "";
     var editTodoValue = "";
+    var abortEdit = false;
+    var editBlurMethod:Void->Void;
 
     public function new(store:Store<Todo>) {
         super();
@@ -45,7 +47,7 @@ class View extends SLView {
 
     function onNewTodoKeyUp(evt:js.html.KeyboardEvent) {
         if (evt.which != ENTER_KEY || newTodoValue == "") {
-            return;
+            return false;
         }
 
         var todo = new Todo(newTodoValue);
@@ -55,7 +57,7 @@ class View extends SLView {
         }
 
         newTodoValue = '';
-        render();
+        return true;
     }
 
     function onToggleAllChange(evt:Dynamic) {
@@ -69,16 +71,13 @@ class View extends SLView {
                 return todo;
             })
         );
-
-        render();
     }
 
-    function onClearClick(evt:Dynamic) {
+    function onClearClick() {
         if (store.overwrite(getActiveTodos())) {
             todos = store.findAll();
         }
         filter = 'all';
-        render();
     }
 
     function onToggleChangeFactory(index:Int) {
@@ -86,43 +85,42 @@ class View extends SLView {
             var el:InputElement = cast evt.target;
             todos[index].completed = el.checked;
             store.update(todos[index]);
-            render();
         }
     }
 
     function onLabelClickFactory(index:Int) {
-        return function onLabelClick(evt:Dynamic) {
+        return function onLabelClick() {
             editingIndex = index;
+            abortEdit = false;
             editTodoValue = todos[index].title;
-            render();
+            editBlurMethod = onEditBlurFactory(index);
         }
     }
 
     function onEditKeyUp(evt:Dynamic) {
-        if (evt.which == ENTER_KEY) {
-            evt.target.blur();
+        if (evt.which != ENTER_KEY && evt.which != ESCAPE_KEY) {
+            return false;
         }
 
         if (evt.which == ESCAPE_KEY) {
-            evt.target.dataset.abort = 'true';
-            evt.target.blur();
+            abortEdit = true;
         }
+
+        editBlurMethod();
+        return true;
     }
 
     function onEditBlurFactory(index:Int) {
-        return function onEditBlur(evt:Dynamic) {
+        return function onEditBlur() {
             var val = editTodoValue.trim();
 
             editingIndex = -1;
 
-            if (evt.target.dataset.abort == 'true') {
-                evt.target.dataset.abort = 'false';
+            if (abortEdit) {
+                abortEdit = false;
+                trace('resetting todoValue');
                 editTodoValue = todos[index].title;
-                render();
-                return;
-            }
-
-            if (val != '') {
+            } else if (val != '') {
                 todos[index].title = val;
                 store.update(todos[index]);
             } else {
@@ -130,8 +128,6 @@ class View extends SLView {
                     todos.splice(index, 1);
                 }
             }
-
-            render();
         }
     }
 
@@ -140,7 +136,6 @@ class View extends SLView {
             if (store.remove(todos[index].id)) {
                 todos.splice(index, 1);
             }
-            render();
         }
     }
 
@@ -181,7 +176,7 @@ class View extends SLView {
                             value: editTodoValue,
                             onkeyup: onEditKeyUp,
                             onchange:setValue(editTodoValue),
-                            onblur: onEditBlurFactory(index),
+                            onblur: editBlurMethod,
                             focus: true,
                             select: true
                         })

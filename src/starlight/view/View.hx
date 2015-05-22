@@ -33,10 +33,13 @@ typedef PropertySetter<T> = T->T;
 class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
+    static var eventCounter = 0;
 
     var e = VirtualElementTools.element;  //  A shortcut for easy access in the `view` method.
     var root:ElementType;
     var postProcessing = new UnsafeMap();
+    var events = new IntMap();
+    var existingEventMap = new IntMap();
     public var elementCache = new IntMap();
     public var currentState = new Array<VirtualElement>();
 
@@ -48,9 +51,41 @@ class View {
 
     private function setValue<T>(prop:PropertySetter<T>) {
         // Mithril has m.withAttr(field, prop).  I'll change this when I find a use-case for updating anything other than value.
-        return function(evt:{target: {value: T}}) {
+        return function(evt:{target: {value: T}}):Void {
             prop(evt.target.value);
         }
+    }
+
+    private function replaceEventHandlers(attrs:VirtualElementAttributes, elementId:Int) {
+        for (key in attrs.keys()) {
+            if (key.indexOf('on') == 0) {
+                if (!existingEventMap.exists(elementId)) {
+                    existingEventMap.set(elementId, new UnsafeMap());
+                }
+                var elementRecord:UnsafeMap = existingEventMap.get(elementId);
+                var eventId:Int = elementRecord.get(key);
+                if (eventId == null) {
+                    eventId = eventCounter++;
+                    elementRecord.set(key, eventId);
+                    events.set(eventId, attrs.get(cast key));
+                }
+                attrs.set(cast key, eventId);
+            }
+        }
+
+        return attrs;
+    }
+
+    private function removeEventHandlers(elementId:Int) {
+        var elementRecord:UnsafeMap = existingEventMap.get(elementId);
+        if (elementRecord == null) {
+            return;
+        }
+
+        for (eventName in elementRecord.keys()) {
+            events.remove(elementRecord.get(eventName));
+        }
+        existingEventMap.remove(elementId);
     }
 
     /*
@@ -81,7 +116,7 @@ class View {
                     action:AddElement,
                     elementId:currentElementId,
                     tag:next.tag,
-                    attrs:next.attrs,
+                    attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
                     textValue:next.textValue,
                     newParent:parentId,
                     newIndex:index
@@ -95,6 +130,7 @@ class View {
                     action:RemoveElement,
                     elementId:current.id
                 });
+                removeEventHandlers(current.id);
                 continue;
             } else if (next.tag != current.tag || next.textValue != current.textValue) {
                 currentElementId = nodeCounter++;
@@ -103,11 +139,13 @@ class View {
                     action:RemoveElement,
                     elementId:current.id
                 });
+                removeEventHandlers(current.id);
+
                 place(addElement, {
                     action:AddElement,
                     elementId:currentElementId,
                     tag:next.tag,
-                    attrs:next.attrs,
+                    attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
                     textValue:next.textValue,
                     newParent:parentId,
                     newIndex:index
@@ -117,12 +155,13 @@ class View {
 
             } else if (!next.isText()) {
                 var attrDiff = new VirtualElementAttributes();
+                var normalizedNextAttributes = replaceEventHandlers(next.attrs, current.id);
                 var attrsAreEqual = true;
 
                 for (key in current.attrs.keys()) {
                     var val;
-                    if (next.attrs.exists(key)) {
-                        val = next.attrs.get(key);
+                    if (normalizedNextAttributes.exists(key)) {
+                        val = normalizedNextAttributes.get(key);
                         attrsAreEqual = attrsAreEqual && val == current.attrs.get(key);
                     } else {
                         val = null;
@@ -131,9 +170,9 @@ class View {
                     attrDiff.set(key, val);
                 }
 
-                for (key in next.attrs.keys()) {
+                for (key in normalizedNextAttributes.keys()) {
                     if (!attrDiff.exists(key)) {
-                        attrDiff.set(key, next.attrs.get(key));
+                        attrDiff.set(key, normalizedNextAttributes.get(key));
                         attrsAreEqual = false;
                     }
                 }
@@ -189,6 +228,60 @@ class View {
         vm.render();
     }
 
+    static function debounce(fun) {
+        // FIXME - This is JS-specific.  Refactor it when splitting apart the view from the renderer.
+        if ((untyped fun).timeout) {
+            return;
+        }
+        (untyped fun).timeout = untyped __js__('requestAnimationFrame(function() { delete fun.timeout; fun(); }, 0)');
+    }
+
+    function buildEventHandler(event, eventId) {
+        return function(evt:Dynamic) {
+            evt.stopPropagation();
+
+            var dataObject = {
+                which: evt.which,
+                target: {
+                    value: evt.target.value,
+                    checked: evt.target.checked
+                }
+            }
+            var eventHandler = events.get(cast eventId);
+
+            if (eventHandler != null) {
+                #if debugRendering
+                var elementId:Int;
+
+                for (eventElementId in existingEventMap.keys()) {
+                    var elementEventMap:UnsafeMap = existingEventMap.get(eventElementId);
+                    for (eventName in elementEventMap.keys()) {
+                        if (elementEventMap.get(eventName) == eventId) {
+                            elementId = eventElementId;
+                            break;
+                        }
+                    }
+                    if (elementId != null) {
+                        break;
+                    }
+                }
+                #end
+
+                if (eventHandler(dataObject) != false) {
+                    #if debugRendering
+                        trace('$event event triggered on $elementId: $dataObject');
+                    #end
+                    debounce(render);
+                } else {
+                    #if debugRendering
+                        trace('$event event triggered on $elementId');
+                    #end
+                }
+            }
+        }
+    }
+
+
     function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
         for (attrName in attrs.keys()) {
@@ -198,10 +291,12 @@ class View {
             if (untyped __js__("attrName in element") && elementPropertyAttributes.indexOf(attrName) == -1) {
                 if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
                     var field = untyped __js__("element[attrName]");
-                    if (untyped __js__("typeof field") == 'function' && attrName.indexOf("on") != 0) {
-                        postProcessing.set(attrName, id);
+                    if (attrName.indexOf("on") == 0) {
+                        (untyped element)[cast attrName] = buildEventHandler(attrName, value);
+                    } else if (untyped __js__("typeof field") == 'function') {
+                            postProcessing.set(attrName, id);
                     } else {
-                        untyped __js__("element[attrName] = value");
+                        (untyped element)[cast attrName] = value;
                     }
                 }
             } else {
