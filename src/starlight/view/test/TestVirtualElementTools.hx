@@ -94,21 +94,59 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
     public function testChildrenEquals() {
         var a = new VirtualElementChildren();
         var b = new VirtualElementChildren();
-        var ve:VirtualElement = {
+        var c = new VirtualElementChildren();
+        var ve1:VirtualElement = {
             tag:"#text",
             children:[],
             textValue:"Hi"
         };
+        var ve2:VirtualElement = {
+            tag:"#text",
+            children:[],
+            textValue:"Bye"
+        }
 
         assertTrue(a.childrenEquals(b));
 
-        b.push(ve);
+        a.push(ve1);
         assertFalse(a.childrenEquals(b));
         assertFalse(b.childrenEquals(a));
 
-        a.push(ve);
-        assertTrue(a.childrenEquals(b));
+        b.push(ve2);
+        assertFalse(a.childrenEquals(b));
+        assertFalse(b.childrenEquals(a));
+
+        c.push(ve1);
+        assertTrue(a.childrenEquals(c));
     }
+
+#if js
+    public function testBuildClassString() {
+        var a = VirtualElementTools.buildClassString(cast {on: true, off: false}),
+            b = VirtualElementTools.buildClassString(cast {on: false, off: true}),
+            c = VirtualElementTools.buildClassString(cast {on: true, off: true});
+
+        assertEquals('on', a);
+        assertEquals('off', b);
+        assertEquals('on off', c);
+    }
+
+    public function testChildren() {
+        var a = VirtualElementTools.buildChildren([{tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'}]),
+            b = VirtualElementTools.buildChildren('hi'),
+            c = VirtualElementTools.buildChildren(1);
+
+        assertEquals(Type.getClass(a), Array);
+        assertEquals(a[0].tag, VirtualElementTools.TEXT_TAG);
+        assertEquals(a[0].textValue, 'hi');
+        assertEquals(Type.getClass(b), Array);
+        assertEquals(b[0].tag, VirtualElementTools.TEXT_TAG);
+        assertEquals(b[0].textValue, 'hi');
+        assertEquals(Type.getClass(c), Array);
+        assertEquals(c[0].tag, VirtualElementTools.TEXT_TAG);
+        assertEquals(c[0].textValue, '1');
+    }
+#end
 }
 
 class TestElementCreation extends starlight.test.TestCase {
@@ -198,6 +236,12 @@ class TestElementCreation extends starlight.test.TestCase {
 
         var ve = VirtualElementTools.element('h2', {"class": "text"});
         assertHTMLEquals('<h2 class="text"></h2>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('.text');
+        assertHTMLEquals('<div class="text"></div>', ve.toHTML());
+
+        var ve = VirtualElementTools.element('');
+        assertHTMLEquals('<div></div>', ve.toHTML());
 
         var ve = VirtualElementTools.element('span#id.header', {"data-bind": "value: text"});
         assertHTMLEquals('<span id="id" class="header" data-bind="value: text"></span>', ve.toHTML());

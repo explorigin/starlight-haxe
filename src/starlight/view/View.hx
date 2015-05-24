@@ -30,6 +30,7 @@ typedef ElementUpdate = {
 
 typedef PropertySetter<T> = T->T;
 
+@:allow(starlight.view.test)
 @:autoBuild(starlight.view.macro.ViewBuilder.build())
 class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
@@ -93,7 +94,6 @@ class View {
      * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
      * Finally, it will return the new `current`
     */
-    @:allow(starlight.view.test)
     function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
         var updates:Array<ElementUpdate> = [];
@@ -237,7 +237,7 @@ class View {
         (untyped fun).timeout = untyped __js__('requestAnimationFrame(function() { delete fun.timeout; fun(); }, 0)');
     }
 
-    function buildEventHandler(event, eventId) {
+    function buildEventHandler(event:String, eventId:Int) {
         return function(evt:Dynamic) {
             evt.stopPropagation();
 
@@ -366,7 +366,6 @@ class View {
 #end
     }
 
-    @:allow(starlight.view.test)
     function consumeUpdates(updates:Array<ElementUpdate>) {
 #if debugRendering
             trace('Starting update set.');

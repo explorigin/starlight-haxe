@@ -89,25 +89,20 @@ class VirtualElementTools {
 #end
     }
 
-    public static function buildChildren(result):Array<VirtualElement> {
-        // In some cases, it is impossible to know at compile-type what some template values are.  In these cases, we punt to runtime.
-        // TODO - Is it really?  Ask if we can determine function return type at macro compile time in ViewBuilder.
-        var retVal = new Array<VirtualElement>();
 #if js
+    public static function buildChildren(result:Dynamic):Array<VirtualElement> {
+        // Calls to this function are automatically inserted with the view builder macro.
+        // In some cases, it is impossible to know at compile-type what some template values
+        // are.  In these cases, we punt to runtime.
+        var retVal = new Array<VirtualElement>();
         if (untyped __js__('Array').isArray(result)) {
             retVal = cast result;
-        } else if (untyped __js__('typeof result') == 'string') {
-            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: cast result}];
-        }
-#else
-        if (Type.getClass(result) == Array) {
-            retVal = cast result;
         } else {
-            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: cast result}];
+            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: untyped result}];
         }
-#end
         return retVal;
     }
+#end
 
     /* element is purely a convenience function for helping to create views. */
     public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
@@ -147,12 +142,11 @@ class VirtualElementTools {
                             default: throw new TypeException("Invalid Type passed to View.element for children");
                         }
                     }
-                    case TNull: paramChildArray = new Array<Dynamic>();
+                    case TNull: {}
                     default: throw new TypeException("Invalid Type passed to View.element for children");
                 }
             }
             case TNull: {
-                paramChildArray = new Array<Dynamic>();
                 attrStruct = {};
             }
             case TEnum(e): {
@@ -203,7 +197,10 @@ class VirtualElementTools {
         }
         var nextElementIndex = getNext(signatureRemaining);
 
-        if (nextElementIndex != 0) {
+        if (nextElementIndex == 0) {
+            tagName = 'div';
+            nextElementIndex = getNext(signatureRemaining.substr(1));
+        } else {
             tagName = signatureRemaining.substr(0, nextElementIndex).toLowerCase();
             signatureRemaining = signatureRemaining.substr(tagName.length);
             nextElementIndex = getNext(signatureRemaining.substr(1));

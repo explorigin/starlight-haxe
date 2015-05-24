@@ -15,11 +15,10 @@
 --next
 
 -cp src
--debug
 -D js-es5
 -dce full
 -lib mcover
---macro mcover.MCover.coverage(['starlight.view'], ['src'])
+--macro mcover.MCover.coverage(['starlight.view'], ['src'], ['starlight.view.test'])
 -main starlight.test.TestRunner
 -js test.js
 
