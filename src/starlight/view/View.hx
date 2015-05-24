@@ -1,14 +1,15 @@
 package starlight.view;
 
+import starlight.view.VirtualElement;
 import starlight.view.VirtualElement.VirtualElementChildren;
 import starlight.view.VirtualElement.VirtualElementAttributes;
-import starlight.view.VirtualElement.VirtualElement;
+import starlight.view.VirtualElementTools;
 import starlight.core.Types.UnsafeMap;
 import starlight.core.Types.IntMap;
 import starlight.core.Types.ElementType;
 import starlight.core.Exceptions.AbstractionException;
 
-using VirtualElement.VirtualElementTools;
+using VirtualElementTools.VirtualElementTools;
 
 enum ElementAction {
     RemoveElement;

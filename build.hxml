@@ -7,6 +7,8 @@
 -cp src
 -debug
 -dce full
+-lib mcover
+--macro mcover.MCover.coverage(['starlight.view'], ['src'], ['starlight.view.test'])
 -main starlight.test.TestRunner
 -php php
 
@@ -16,6 +18,8 @@
 -debug
 -D js-es5
 -dce full
+-lib mcover
+--macro mcover.MCover.coverage(['starlight.view'], ['src'])
 -main starlight.test.TestRunner
 -js test.js
 

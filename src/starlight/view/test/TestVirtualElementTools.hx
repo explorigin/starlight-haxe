@@ -4,7 +4,7 @@ import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElementChildren;
 import starlight.view.VirtualElement.VirtualElement;
 
-using starlight.view.VirtualElement.VirtualElementTools;
+using starlight.view.VirtualElementTools.VirtualElementTools;
 using StringTools;
 
 class TestVirtualElementTools extends haxe.unit.TestCase {

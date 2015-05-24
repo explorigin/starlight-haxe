@@ -7,7 +7,7 @@ import starlight.view.View.ElementUpdate;
 import starlight.view.View.ElementAction.*;
 
 using Lambda;
-using VirtualElement.VirtualElementTools;
+using VirtualElementTools.VirtualElementTools;
 
 
 class TestViewUpdate extends starlight.test.TestCase {

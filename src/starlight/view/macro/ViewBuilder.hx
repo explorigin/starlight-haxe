@@ -6,12 +6,12 @@ import haxe.macro.Expr;
 import haxe.macro.Type;
 
 import starlight.view.VirtualElement;
-import starlight.view.VirtualElement.VirtualElementTools;
+import starlight.view.VirtualElementTools;
 
 using StringTools;
 using tink.MacroApi;
 using haxe.macro.ExprTools;
-using starlight.view.VirtualElement.VirtualElementTools;
+using starlight.view.VirtualElementTools;
 
 #end
 
@@ -118,7 +118,7 @@ class ViewBuilder {
     }
 
     static function extractStructure(paramArray: Array<Expr>):Expr {
-        var struct:starlight.view.VirtualElement;
+        var struct:VirtualElement;
         var signature:String;
         var attributes = new haxe.ds.StringMap<{ field : String, expr : haxe.macro.Expr }>();
         var childrenExpr;
@@ -149,7 +149,7 @@ class ViewBuilder {
                 //  e('signature', func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro starlight.view.VirtualElement.VirtualElementTools.buildChildren(untyped ${paramArray[1]});
+                    childrenExpr = macro starlight.view.VirtualElementTools.buildChildren(untyped ${paramArray[1]});
 
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
@@ -186,7 +186,7 @@ class ViewBuilder {
                 //  e('signature', ?, func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro starlight.view.VirtualElement.VirtualElementTools.buildChildren(untyped ${paramArray[2]});
+                    childrenExpr = macro starlight.view.VirtualElementTools.buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
                 case {expr: _, pos: ePos}:
                     var expr = buildTextElement(paramArray[2]);
@@ -196,7 +196,7 @@ class ViewBuilder {
             }
         }
 
-        var virtualElement = starlight.view.VirtualElementTools.element(signature);
+        var virtualElement = VirtualElementTools.element(signature);
 
         var tagName = Context.makeExpr(virtualElement.tag, tagPos);
         var objfields = new Array<{field:String, expr:Expr}>();
@@ -216,7 +216,7 @@ class ViewBuilder {
                     case {expr: EObjectDecl(fields), pos: oPos}:
                         value = {
                             field:'class',
-                            expr: macro starlight.view.VirtualElement.VirtualElementTools.buildClassString(untyped ${value.expr})
+                            expr: macro starlight.view.VirtualElementTools.buildClassString(untyped ${value.expr})
                         }
                     default:
                 };

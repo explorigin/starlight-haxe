@@ -1,9 +1,20 @@
 package starlight.test;
 
 class TestRunner {
+#if js
+    static function getCodeElement():Dynamic {
+        var document = js.Browser.document;
+        return (untyped document.querySelectorAll('code'))[1];
+    }
+#end
+
     static function runTests() {
 #if js
         js.Browser.document.querySelector('#notice').style.display = "None";
+#end
+
+#if (!neko)
+        var logger = mcover.coverage.MCoverage.getLogger();
 #end
 
         var r = new haxe.unit.TestRunner();
@@ -16,8 +27,19 @@ class TestRunner {
         r.run();
 
 #if js
-        var body = js.Browser.document.body;
-        untyped __js__("setTimeout(function() { body.scrollTop = body.scrollHeight; }, 10)");
+        var el = getCodeElement();
+        var testResults = el.innerHTML;
+        el.innerHTML = '';
+        trace(testResults);
+#end
+
+#if (!neko)
+        logger.report();
+#end
+
+#if js
+        var coverageResults = el.innerText;
+        el.innerHTML = coverageResults;
 #end
     }
 
