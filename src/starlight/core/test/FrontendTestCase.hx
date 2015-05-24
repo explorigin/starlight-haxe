@@ -1,4 +1,4 @@
-package starlight.test;
+package starlight.core.test;
 
 import starlight.core.Types.IntMap;
 

@@ -30,7 +30,7 @@ typedef ElementUpdate = {
 
 typedef PropertySetter<T> = T->T;
 
-@:allow(starlight.view.test)
+@:allow(starlight.test.view)
 @:autoBuild(starlight.view.macro.ViewBuilder.build())
 class View {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];

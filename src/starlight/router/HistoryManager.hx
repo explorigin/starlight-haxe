@@ -1,12 +1,29 @@
 package starlight.router;
 
-import js.Browser.window;
 import msignal.Signal;
 import starlight.core.StringTools;
+#if js
+import js.Browser.window;
+#else
+typedef MockDOMWindow = {
+    onhashchange: Void->Void,
+    location: {
+        hash: String
+    }
+}
+#end
 
 class HistoryManager {
     var isActive:Bool = false;
     var currentHash:String = '';
+#if !js
+    static var window = {
+        onhashchange: null,
+        location: {
+            hash: '#hash'
+        }
+    };
+#end
 
     public var onHashUpdate(default, null) = new Signal2<String, String>();
 

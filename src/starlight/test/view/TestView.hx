@@ -1,4 +1,4 @@
-package starlight.view.test;
+package starlight.test.view;
 
 import starlight.core.Types.ElementType;
 import starlight.view.View;
@@ -7,10 +7,10 @@ import starlight.view.View.ElementUpdate;
 import starlight.view.View.ElementAction.*;
 
 using Lambda;
-using VirtualElementTools.VirtualElementTools;
+using starlight.view.VirtualElementTools;
 
 
-class TestViewUpdate extends starlight.test.TestCase {
+class TestViewUpdate extends starlight.core.test.TestCase {
     var e = VirtualElementTools.element;
     var nodeCount = 0;
 
@@ -193,13 +193,13 @@ class TestViewUpdate extends starlight.test.TestCase {
 }
 
 
-class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
+class TestViewConsumeUpdates extends starlight.core.test.FrontendTestCase {
     function populateBasicElements(vm:Dynamic) {
         elementCache = vm.elementCache;
-        var attrs = new VirtualElement.VirtualElementAttributes();
+        var attrs = new VirtualElementAttributes();
         attrs.set("class", "title");
 
-        var inputAttrs = new VirtualElement.VirtualElementAttributes();
+        var inputAttrs = new VirtualElementAttributes();
         inputAttrs.set("class", "form");
         inputAttrs.set("value", "initial");
         inputAttrs.set("placeholder", "test text");
@@ -217,7 +217,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
             action:AddElement,
             elementId:2,
             tag:'#text',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"Starlight Demo",
             newParent:1,
             newIndex:0
@@ -263,7 +263,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
         var updates = populateBasicElements(vm);
         assertElementTextEquals("Starlight Demo", '.title');
 
-        var attrs = new VirtualElement.VirtualElementAttributes();
+        var attrs = new VirtualElementAttributes();
         attrs.set("class", "title hidden");
 
         updates = [{
@@ -325,7 +325,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
 
         assertElementValue('.form', 'initial');
 
-        var inputAttrs = new VirtualElement.VirtualElementAttributes();
+        var inputAttrs = new VirtualElementAttributes();
         inputAttrs.set("value", "result");
 
         updates = [{
@@ -346,7 +346,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
 
         assertNotEquals(js.Browser.document.activeElement, inputEl);
 
-        var inputAttrs = new VirtualElement.VirtualElementAttributes();
+        var inputAttrs = new VirtualElementAttributes();
         inputAttrs.set("focus", true);
 
         updates = [{
@@ -364,14 +364,14 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
         var vm = new View();
         var updates = populateBasicElements(vm);
 
-        var attrs = new VirtualElement.VirtualElementAttributes();
+        var attrs = new VirtualElementAttributes();
         attrs.set("value", "Two");
 
         updates = [{
             action:AddElement,
             elementId:4,
             tag:'select',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"",
             newParent:1,
             newIndex:1
@@ -380,7 +380,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
             action:AddElement,
             elementId:5,
             tag:'option',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"",
             newParent:4,
             newIndex:0
@@ -389,7 +389,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
             action:AddElement,
             elementId:6,
             tag:'#text',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"One",
             newParent:5,
             newIndex:0
@@ -398,7 +398,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
             action:AddElement,
             elementId:7,
             tag:'option',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"",
             newParent:4,
             newIndex:0
@@ -407,7 +407,7 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
             action:AddElement,
             elementId:8,
             tag:'#text',
-            attrs:new VirtualElement.VirtualElementAttributes(),
+            attrs:new VirtualElementAttributes(),
             textValue:"Two",
             newParent:7,
             newIndex:0
@@ -420,5 +420,23 @@ class TestViewConsumeUpdates extends starlight.test.FrontendTestCase {
         vm.consumeUpdates(updates);
 
         assertElementValue('select', 'Two');
+    }
+}
+
+class TestViewHelperFunctions extends starlight.core.test.FrontendTestCase {
+    public function testBuildEventHandler() {
+        var vm = new View(),
+            func = vm.buildEventHandler('onchange', 1),
+            stopPropagationCalled = false,
+            mockEvent = {
+                which: null,
+                target: {
+                    value: 'test',
+                    checked: null
+                }
+            };
+
+
+
     }
 }

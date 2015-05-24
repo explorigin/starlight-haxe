@@ -19,10 +19,10 @@ class TestRunner {
 
         var r = new haxe.unit.TestRunner();
 
-        r.add(new starlight.view.test.TestVirtualElementTools());
-        r.add(new starlight.view.test.TestVirtualElementTools.TestElementCreation());
-        r.add(new starlight.view.test.TestView.TestViewUpdate());
-        r.add(new starlight.view.test.TestView.TestViewConsumeUpdates());
+        r.add(new starlight.test.view.TestVirtualElementTools());
+        r.add(new starlight.test.view.TestVirtualElementTools.TestElementCreation());
+        r.add(new starlight.test.view.TestView.TestViewUpdate());
+        r.add(new starlight.test.view.TestView.TestViewConsumeUpdates());
 
         r.run();
 
