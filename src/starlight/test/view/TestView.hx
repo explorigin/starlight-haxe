@@ -423,7 +423,7 @@ class TestViewConsumeUpdates extends starlight.core.test.FrontendTestCase {
     }
 }
 
-class TestViewHelperFunctions extends starlight.core.test.FrontendTestCase {
+class TestViewHelperFunctions extends starlight.core.test.TestCase {
     public function testBuildEventHandler() {
         var vm = new View(),
             func = vm.buildEventHandler('onchange', 1),

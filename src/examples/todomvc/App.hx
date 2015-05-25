@@ -2,8 +2,6 @@ package todomvc;
 
 import starlight.view.View in SLView;
 import starlight.router.HistoryManager;
-import js.html.InputElement;
-import js.html.DOMElement;
 
 using starlight.core.StringTools;
 using starlight.core.ArrayTools;
@@ -61,9 +59,7 @@ class View extends SLView {
     }
 
     function onToggleAllChange(evt:Dynamic) {
-        var el:InputElement = cast evt.target;
-
-        var isChecked = el.checked;
+        var isChecked = evt.target.checked;
 
         store.overwrite(
             todos.map(function (todo:Todo):Todo {
@@ -82,8 +78,7 @@ class View extends SLView {
 
     function onToggleChangeFactory(index:Int) {
         return function onToggleChange(evt:Dynamic) {
-            var el:InputElement = cast evt.target;
-            todos[index].completed = el.checked;
+            todos[index].completed = evt.target.checked;
             store.update(todos[index]);
         }
     }

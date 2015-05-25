@@ -2,9 +2,9 @@ package starlight.test.view;
 
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElementChildren;
-import starlight.view.VirtualElement.VirtualElement;
+import starlight.view.VirtualElement;
 
-using starlight.view.VirtualElementTools.VirtualElementTools;
+using starlight.view.VirtualElementTools;
 using StringTools;
 
 class TestVirtualElementTools extends haxe.unit.TestCase {

@@ -10,7 +10,7 @@
 -lib mcover
 -lib msignal
 -lib tink_macro
---macro mcover.MCover.coverage(['starlight'], ['src'], ['starlight.test'])
+--macro mcover.MCover.coverage(['starlight'], ['src'], ['starlight.core.test', 'starlight.test'])
 -main starlight.test.TestRunner
 -php php
 
@@ -22,7 +22,7 @@
 -lib mcover
 -lib msignal
 -lib tink_macro
---macro mcover.MCover.coverage(['starlight'], ['src'], ['starlight.test'])
+--macro mcover.MCover.coverage(['starlight'], ['src'], ['starlight.core.test', 'starlight.test'])
 -main starlight.test.TestRunner
 -js test.js
 
