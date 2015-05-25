@@ -1,0 +1,28 @@
+# The build.hxml file specifies all the command-line parameters that you would normally pass to
+# the haxe compiler.
+
+-cp ../
+-cp ../../
+
+# Create output that takes advantage of browsers that implement ECMAScript 5
+-D js-es5
+-D analyzer
+
+# Turning on debugRendering will log all DOM changes and DOM events to the console
+-D debugRendering
+
+# Use full dead-code elimination.
+-dce full
+
+# Adding the debug flag will generate source-maps along with our Javascript files
+#-debug
+
+# Specify the entry-point into our application
+-main hello_world.App
+
+# Include some used external libraries
+-lib msignal
+-lib tink_macro
+
+# create a Javascript file at js/app.js
+-js js/app.js

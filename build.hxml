@@ -30,3 +30,8 @@
 
 -cmd cd src/examples/todomvc
 -cmd haxe build.hxml
+
+--next
+
+-cmd cd ../hello_world
+-cmd haxe build.hxml

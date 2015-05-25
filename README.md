@@ -21,48 +21,71 @@ Be sure to open `test.html` in your target web browsers to ensure that the brows
 
 ## Modules
 
-Starlight consists of a set of modular components to handle:
-
-- storage and sync
-- view-rendering and updating
-- browser-to-server and server-to-server communication
-
 ### View
 
 The View portion of Starlight provides a way to define and manipulate the browser DOM using templates, event handling and components.  It is lightweight virtual-DOM inspired by [Mithril](http://mithriljs.com) and [KnockoutJS](https://www.knockoutjs.com).
 
-#### Example
+## Examples
 
-```Haxe
-class ViewModel extends View {
-    var title = "Starlight Demo"
-    var clickCount = 0;
+See the src/examples directory for examples on how Starlight is used.
 
-    function handleClick(evt) {
-        clickCount++;
-    }
+## Roadmap
 
-    @:view
-    override function view() {
-        return [
-            e('header.title', if (clickCount > 0) '$title - clicked $clickCount times.' else title),
-            e('section', [
-                e('button', {onclick: handleClick}, 'Click Me!')
-            ])
-        ];
-    }
-}
+### General
 
-var view = new ViewModel();
-view.render();
-```
+- AMD or ES6 modules for the client-side
 
-### Payload
+### View layer
 
-Payload manages storage and syncing between the front-end and back-end.
+- split between DOM renderer and component
+- nestable components
+- implement web-worker components
+- make all but the DOM renderer work on the server-side
+- provide reactive event interface to DOM events
 
-(Under consideration: https://github.com/hoodiehq/wip-hoodie-store-on-pouchdb#dream-api)
+### Loader
 
-### Elevator
+- implement loader that can resolve a main web component and sub-components and start the appropriate web-workers
 
-Elevator provides communication in various forms between the server and browser.
+  - loader should use a new web-worker for each source-file domain.
+
+### Router
+
+Current router is just a history event interface
+
+- defined routes
+- callback navigation
+- server-side routing
+- nestable routes and mapping to nestable components
+
+### Server-side
+
+- isomorphic rendering
+- standardized RPC method
+- event-like server
+- pure-server logic
+
+### Storage layer
+
+ - investigate different storage methods
+
+   - data storage (private)
+     - pouchdb/couchdb
+     - rethinkdb
+     - indexeddb
+   - data storage (public)
+     - ipfs
+     - maidsafe
+     - s3
+  - file layer
+     - s3
+     - byofs
+     - remote-storage
+     - maidsafe
+     - webtorrent
+
+  - Consider API: https://github.com/hoodiehq/wip-hoodie-store-on-pouchdb#dream-api
+
+### i18n/l10n
+
+- implement haxe i18n library
