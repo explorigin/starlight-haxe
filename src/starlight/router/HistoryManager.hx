@@ -13,11 +13,12 @@ typedef MockDOMWindow = {
 }
 #end
 
+@:allow(starlight.test.router)
 class HistoryManager {
     var isActive:Bool = false;
     var currentHash:String = '';
-#if !js
-    static var window = {
+#if (!js)
+    public var window:MockDOMWindow = {
         onhashchange: null,
         location: {
             hash: '#hash'
@@ -62,7 +63,8 @@ class HistoryManager {
         onHashUpdate.dispatch(trimHash(newHash), trimHash(oldHash));
     }
 
-    static function getWindowHash() {
+    // This would normally be static but connecting it to the class enables testing.
+    function getWindowHash() {
         var hash:String = StringTools.urlDecode(window.location.hash);
         return if (hash.charAt(0) == '#') StringTools.substr(hash, 1, hash.length) else hash;
     }

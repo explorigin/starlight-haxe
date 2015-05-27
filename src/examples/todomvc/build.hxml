@@ -13,8 +13,8 @@
 # Use full dead-code elimination.
 -dce full
 
-# Adding the debug flag will generate source-maps along with our Javascript files
--debug
+# Adding the debug flag will generate source-maps however, it is often easier to debug with just the unminified Javascript
+# -debug
 
 # Specify the entry-point into our application
 -main todomvc.App

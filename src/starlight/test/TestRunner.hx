@@ -19,6 +19,7 @@ class TestRunner {
 
         var r = new haxe.unit.TestRunner();
 
+        r.add(new starlight.test.router.TestHistoryManager());
         r.add(new starlight.test.view.TestVirtualElementTools());
         r.add(new starlight.test.view.TestVirtualElementTools.TestElementCreation());
         r.add(new starlight.test.view.TestView.TestViewUpdate());
