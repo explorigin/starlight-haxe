@@ -468,5 +468,54 @@ class TestViewHelperFunctions extends starlight.core.test.TestCase {
         assertEquals(1, vm.renderCount);
     }
 
+    public function testRemoveEventHandlers() {
+        var vm = new MockedRenderView(),
+            attrs = new VirtualElementAttributes();
 
+        attrs.set('onchange', 1);
+        attrs.set('onkeyup', 2);
+
+        vm.removeEventHandlers(1);  // Assert no Exception
+
+        vm.existingEventMap.set(1, attrs);
+        vm.events.set(1, function() {});
+        vm.events.set(2, function() {});
+
+        assertEquals(2, [for (key in vm.events.keys()) 1].length);
+
+        vm.removeEventHandlers(1);  // Assert no Exception
+        assertEquals(0, [for (key in vm.events.keys()) 1].length);
+    }
+
+    public function testReplaceEventHandlers() {
+        var vm = new MockedRenderView(),
+            onChangeFunc = function() {},
+            onKeyUpFunc = function() {},
+            attrs = new VirtualElementAttributes(),
+            resultAttrs = new VirtualElementAttributes();
+
+        attrs.set('onchange', onChangeFunc);
+        attrs.set('onkeyup', onKeyUpFunc);
+        attrs.set('id', 'tamborine');
+
+        resultAttrs.set('onchange', 1);
+        resultAttrs.set('onkeyup', 0);
+        resultAttrs.set('id', 'tamborine');
+
+        function compareResults(output:VirtualElementAttributes) {
+            assertEquals(2, [for (key in vm.events.keys()) 1].length);
+            for (key in resultAttrs.keys()) {
+                assertTrue(output.exists(key));
+            }
+            assertEquals(resultAttrs.get('id'), output.get('id'));
+            assertTrue(output.get('onkeyup') == 1 || output.get('onkeyup') == 0);
+            assertTrue(output.get('onchange') == 1 || output.get('onchange') == 0);
+            assertEquals([for (key in resultAttrs.keys()) 1].length, [for (key in output.keys()) 1].length);
+        }
+
+        compareResults(vm.replaceEventHandlers(attrs, 1));
+
+        // This is not a stutter.  Running it twice to check idempotency.
+        compareResults(vm.replaceEventHandlers(attrs, 1));
+    }
 }
