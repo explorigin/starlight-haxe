@@ -34,9 +34,16 @@ See the src/examples directory for examples on how Starlight is used.
 ### General
 
 - AMD or ES6 modules for the client-side
+- Consider ways to improve UX by anticipating server responses.  If the real response comes back differently:
+
+  - rewind the UI state back to before the fake response
+  - apply the real response
+  - reapply the rewinded events until something looks different or we've returned to the current state
+  - call it a "Time Warp"
 
 ### View layer
 
+- map all event handlers to the root node instead of individual nodes
 - split between DOM renderer and component
 - nestable components
 - implement web-worker components
