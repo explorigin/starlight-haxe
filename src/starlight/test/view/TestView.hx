@@ -423,20 +423,50 @@ class TestViewConsumeUpdates extends starlight.core.test.FrontendTestCase {
     }
 }
 
+class MockedRenderView extends View {
+    public var renderCount = 0;
+
+    override public function render() { renderCount++; }
+}
+
 class TestViewHelperFunctions extends starlight.core.test.TestCase {
     public function testBuildEventHandler() {
-        var vm = new View(),
-            func = vm.buildEventHandler('onchange', 1),
+        var vm = new MockedRenderView(),
+            func1 = vm.buildEventHandler('onchange', 1),
+            func2 = vm.buildEventHandler('onchange', 2),
             stopPropagationCalled = false,
             mockEvent = {
                 which: null,
                 target: {
                     value: 'test',
                     checked: null
-                }
+                },
+                stopPropagation: function() { stopPropagationCalled = true; }
             };
 
+        vm.events.set(1, function(mE) {
+            assertEquals(mE.target.value, mockEvent.target.value);
+        });
 
+        func1(mockEvent);
+        assertTrue(stopPropagationCalled);
+        assertEquals(1, vm.renderCount);
 
+        stopPropagationCalled = false;
+        func2(mockEvent);
+        assertTrue(stopPropagationCalled);
+        assertEquals(1, vm.renderCount);
+
+        vm.events.set(2, function(mE) {
+            assertEquals(mE.target.value, mockEvent.target.value);
+            return false;
+        });
+
+        stopPropagationCalled = false;
+        func2(mockEvent);
+        assertTrue(stopPropagationCalled);
+        assertEquals(1, vm.renderCount);
     }
+
+
 }

@@ -1,5 +1,8 @@
 -cp src
+-debug
+-D unittest
 -lib msignal
+-lib tink_macro
 -main starlight.test.TestRunner
 --interp
 
@@ -7,6 +10,7 @@
 
 -cp src
 -debug
+-D unittest
 -dce full
 -lib mcover
 -lib msignal
@@ -18,6 +22,8 @@
 --next
 
 -cp src
+#-debug
+-D unittest
 -D js-es5
 -dce full
 -lib mcover

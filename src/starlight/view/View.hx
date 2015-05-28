@@ -91,8 +91,7 @@ class View {
     }
 
     /*
-     * update will bring the `current` to parity with `next` and append all the necessary changes to `pendingChanges`.
-     * Finally, it will return the new `current`
+     * update will bring the `currentState` to parity with `nextState` and return an array of necessary changes.
     */
     function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
@@ -225,12 +224,16 @@ class View {
         vm.render();
     }
 
-    static function debounce(fun) {
+    static inline function debounce(fun) {
         // FIXME - This is JS-specific.  Refactor it when splitting apart the view from the renderer.
+    #if (js && !unittest)
         if ((untyped fun).timeout) {
             return;
         }
         (untyped fun).timeout = untyped __js__('requestAnimationFrame(function() { delete fun.timeout; fun(); }, 0)');
+    #else
+        fun();
+    #end
     }
 
     function buildEventHandler(event:String, eventId:Int) {
@@ -265,14 +268,14 @@ class View {
                 #end
 
                 if (eventHandler(dataObject) != false) {
-                    #if debugRendering
-                        trace('$event event triggered on $elementId: $dataObject');
-                    #end
+            #if debugRendering
+                    trace('$event event triggered on $elementId: $dataObject');
+            #end
                     debounce(render);
+            #if debugRendering
                 } else {
-                    #if debugRendering
                         trace('$event event triggered on $elementId');
-                    #end
+            #end
                 }
             }
         }
