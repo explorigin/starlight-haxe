@@ -100,10 +100,6 @@ class View {
         var currentStateItems = currentState.length;
         var nextStateItems = nextState.length;
 
-        inline function place(func:ElementUpdate->Void, upd:ElementUpdate) {
-            updates.push(upd);
-        }
-
         for (index in 0...(if (currentStateItems > nextStateItems) currentStateItems else nextStateItems)) {
             var next = if (index < nextStateItems) nextState[index] else null;
             var current = if (index < currentStateItems) currentState[index] else null;
@@ -113,7 +109,7 @@ class View {
             if (current == null) {
                 currentElementId = nodeCounter++;
 
-                place(addElement, {
+                updates.push({
                     action:AddElement,
                     elementId:currentElementId,
                     tag:next.tag,
@@ -127,7 +123,7 @@ class View {
 
             } else if (next == null) {
                 // If there is nothing there, just remove it.
-                place(removeElement, {
+                updates.push({
                     action:RemoveElement,
                     elementId:current.id
                 });
@@ -136,13 +132,13 @@ class View {
             } else if (next.tag != current.tag || next.textValue != current.textValue) {
                 currentElementId = nodeCounter++;
 
-                place(removeElement, {
+                updates.push({
                     action:RemoveElement,
                     elementId:current.id
                 });
                 removeEventHandlers(current.id);
 
-                place(addElement, {
+                updates.push({
                     action:AddElement,
                     elementId:currentElementId,
                     tag:next.tag,
@@ -180,7 +176,7 @@ class View {
 
                 if (!attrsAreEqual) {
                     // Update the current element
-                    place(updateElement, {
+                    updates.push({
                         action:UpdateElement,
                         elementId:current.id,
                         attrs:attrDiff
@@ -201,7 +197,7 @@ class View {
             );
 
             if (changingSelectValue) {
-                place(updateElement, {
+                updates.push({
                     action:UpdateElement,
                     elementId:currentElementId,
                     attrs: cast {value: next.attrs.get('value')}
