@@ -302,7 +302,7 @@ class View {
                     if (attrName.indexOf("on") == 0) {
                         (untyped element)[cast attrName] = buildEventHandler(attrName, value);
                     } else if (untyped __js__("typeof field") == 'function') {
-                            postProcessing.set(attrName, id);
+                        postProcessing.set(attrName, id);
                     } else {
                         (untyped element)[cast attrName] = value;
                     }

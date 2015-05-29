@@ -43,7 +43,7 @@ See the src/examples directory for examples on how Starlight is used.
 
 ### View layer
 
-- map all event handlers to the root node instead of individual nodes
+- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions.
 - constrain render calls to 60 fps
 - split between DOM renderer and component
 - nestable components
