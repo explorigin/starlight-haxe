@@ -3,7 +3,8 @@
   "description": "TodoMVC implementation for Starlight",
   "private": true,
   "dependencies": {
-    "todomvc-common": "~1.0.1",
-    "todomvc-app-css": "~1.0.1"
+    "requirejs": "^2.1.18",
+    "todomvc-app-css": "~1.0.1",
+    "todomvc-common": "~1.0.1"
   }
 }
