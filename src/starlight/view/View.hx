@@ -128,7 +128,7 @@ class View {
                 });
                 removeEventHandlers(current.id);
                 continue;
-            } else if (next.tag != current.tag || next.textValue != current.textValue) {
+            } else if (next.tag != current.tag) {
                 currentElementId = nodeCounter++;
 
                 updates.push({
@@ -149,6 +149,14 @@ class View {
 
                 changingSelectValue = next.tag == 'select' && next.attrs.exists('value');
 
+            } else if (next.textValue != current.textValue) {
+                updates.push({
+                    action:UpdateElement,
+                    elementId:current.id,
+                    attrs:cast {textContent: next.textValue}
+                });
+
+                currentElementId = current.id;
             } else if (!next.isText()) {
                 var attrDiff = new VirtualElementAttributes();
                 var normalizedNextAttributes = replaceEventHandlers(next.attrs, current.id);

@@ -44,6 +44,7 @@ See the src/examples directory for examples on how Starlight is used.
 ### View layer
 
 - map all event handlers to the root node instead of individual nodes
+- constrain render calls to 60 fps
 - split between DOM renderer and component
 - nestable components
 - implement web-worker components
