@@ -1,8 +1,11 @@
 package hello_world;
 
-import starlight.view.View;
+import js.Browser;
 
-class ViewModel extends View {
+import starlight.view.Component;
+import starlight.view.Renderer;
+
+class ViewModel extends Component {
     var title = "Starlight • Hello World";
     var clickCount = 0;
 
@@ -11,7 +14,7 @@ class ViewModel extends View {
     }
 
     @:view
-    override function view() {
+    override function template() {
         return [
             e('header.title', [if (clickCount > 0) '$title - clicked $clickCount times.' else title]),
             e('section', [
@@ -23,7 +26,7 @@ class ViewModel extends View {
 
 class App {
     static function main() {
-        var view = new ViewModel();
-        view.render();
+        var r = new Renderer();
+        r.start(new ViewModel(), Browser.document.body);
     }
 }

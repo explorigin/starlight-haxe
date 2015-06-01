@@ -5,6 +5,7 @@ With Javascript, you can have...
 - isomorphic app rendering
 - code-sharing between server and client components
 - static type-checking
+- macros
 
 ...but you can only pick a few of these at a time.  Starlight gives you all these things to provide a solid platform for large web applications.  Starlight is built with a Javascript-like language called [Haxe](https://www.haxe.org).  In addition to the above features, Haxe offers...
 
@@ -33,7 +34,10 @@ See the src/examples directory for examples on how Starlight is used.
 
 ### General
 
-- AMD or ES6 modules for the client-side
+- Modify JSGenerator to output ES6 modules
+
+  - integration with webpack
+
 - Consider ways to improve UX by anticipating server responses.  If the real response comes back differently:
 
   - rewind the UI state back to before the fake response
@@ -45,6 +49,7 @@ See the src/examples directory for examples on how Starlight is used.
 
 - consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions.
 - constrain render calls to 60 fps
+- element-motion tracking algorithm to make moving an element more efficient.
 - split between DOM renderer and component
 - nestable components
 - implement web-worker components
