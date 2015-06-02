@@ -137,7 +137,7 @@ class View extends Component {
         }
     }
 
-    @:view
+    @:prerender
     override function template() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;

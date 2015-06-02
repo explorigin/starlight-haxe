@@ -75,7 +75,7 @@ class ViewBuilder {
     static function findViewFields(field: Field) {
         return switch (field.kind) {
             case FieldType.FFun(func):
-                if (field.meta.toMap().exists(':view')) {
+                if (field.meta.toMap().exists(':prerender')) {
                     func.expr = func.expr.map(matchElementCalls);
                 }
                 field;

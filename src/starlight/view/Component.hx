@@ -238,10 +238,12 @@ class Component {
             );
 
             if (changingSelectValue) {
+                var selectSecondarySet = new VirtualElementAttributes();
+                selectSecondarySet.set('value', next.attrs.get('value'));
                 updates.push({
                     action:UpdateElement,
                     elementId:currentElementId,
-                    attrs: cast {value: next.attrs.get('value')}
+                    attrs: selectSecondarySet
                 });
             }
         }

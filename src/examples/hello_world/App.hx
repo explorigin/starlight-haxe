@@ -13,7 +13,7 @@ class ViewModel extends Component {
         clickCount++;
     }
 
-    @:view
+    @:prerender
     override function template() {
         return [
             e('header.title', [if (clickCount > 0) '$title - clicked $clickCount times.' else title]),

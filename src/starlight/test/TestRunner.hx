@@ -22,10 +22,10 @@ class TestRunner {
         r.add(new starlight.test.router.TestHistoryManager());
         r.add(new starlight.test.view.TestVirtualElementTools());
         r.add(new starlight.test.view.TestVirtualElementTools.TestElementCreation());
-        r.add(new starlight.test.view.TestView.TestViewUpdate());
-        r.add(new starlight.test.view.TestView.TestViewConsumeUpdates());
-        r.add(new starlight.test.view.TestView.TestViewHelperFunctions());
-
+        r.add(new starlight.test.view.TestComponent());
+#if js
+        r.add(new starlight.test.view.TestRenderer());
+#end
         r.run();
 
 #if js

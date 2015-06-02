@@ -47,7 +47,7 @@ See the src/examples directory for examples on how Starlight is used.
 
 ### View layer
 
-- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions.
+- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions (particularly important for scroll and mouseover events)
 - constrain render calls to 60 fps
 - element-motion tracking algorithm to make moving an element more efficient.
 - split between DOM renderer and component
@@ -75,9 +75,8 @@ Current router is just a history event interface
 ### Server-side
 
 - isomorphic rendering
-- standardized RPC method
-- event-like server
-- pure-server logic
+- standardized RPC method (ext.direct?)
+- WebRTC connection initialization
 
 ### Storage layer
 
