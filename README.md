@@ -53,7 +53,8 @@ See the src/examples directory for examples on how Starlight is used.
 - split between DOM renderer and component
 - nestable components
 - implement web-worker components
-- make all but the DOM renderer work on the server-side
+- textarea and content-editable support
+- make everything, except the DOM renderer, work on the server-side
 - provide reactive event interface to DOM events
 
 ### Loader

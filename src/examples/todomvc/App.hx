@@ -1,12 +1,15 @@
 package todomvc;
 
-import starlight.view.View in SLView;
+import js.Browser;
+
+import starlight.view.Renderer;
+import starlight.view.Component;
 import starlight.router.HistoryManager;
 
 using starlight.core.StringTools;
 using starlight.core.ArrayTools;
 
-class View extends SLView {
+class View extends Component {
     static inline var ENTER_KEY = 13;
     static inline var ESCAPE_KEY = 27;
 
@@ -135,7 +138,7 @@ class View extends SLView {
     }
 
     @:view
-    override function view() {
+    override function template() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
         var activeTodoCount = getActiveTodos().length;
@@ -231,9 +234,12 @@ class App {
         var store = new Store<Todo>('todomvc');
         var view = new View(store);
 
+        var r = new Renderer();
+        r.start(view, Browser.document.body);
+
         var manager = new HistoryManager(function (newHash, oldHash) {
             view.filter = newHash;
-            view.render();
+            view.checkState();
         });
         manager.init('/all');
     }
