@@ -10,9 +10,35 @@ import starlight.view.Component.ElementUpdate;
 import starlight.view.Component.ElementAction.*;
 
 #if js
+class MockedRenderer extends Renderer {
+    public var lastEvent:PseudoEvent;
+    public var lastUpdates:Array<ElementUpdate>;
+    public var lastBuiltEventId:Int;
+
+    public function new() {
+        super();
+
+        rootComponent = cast {
+            triggerEvent: function(obj) {
+                lastEvent = obj;
+            }
+        };
+    }
+
+    override public function consumeUpdates(updates) {
+        lastUpdates = updates;
+    }
+
+    override function buildEventHandler(id:Int) {
+        lastBuiltEventId = id;
+        return function(evt:Dynamic) {};
+    }
+}
+
 class TestRenderer extends starlight.core.test.FrontendTestCase {
     function populateBasicElements(r:Renderer) {
         elementCache = r.elementCache;
+
         var attrs = new VirtualElementAttributes();
         attrs.set("class", "title");
 
@@ -175,6 +201,57 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
         assertEquals(Browser.document.activeElement, inputEl);
     }
 
+    public function testRender() {
+        var r = new MockedRenderer();
+
+        var attrs = new VirtualElementAttributes();
+        attrs.set("class", "title");
+
+        var inputAttrs = new VirtualElementAttributes();
+        inputAttrs.set("class", "form");
+        inputAttrs.set("value", "initial");
+        inputAttrs.set("placeholder", "test text");
+
+        var updates:Array<ElementUpdate> = [{
+            action:AddElement,
+            elementId:1,
+            tag:'h1',
+            attrs:attrs,
+            textValue:"",
+            newParent:null,
+            newIndex:0
+        },
+        {
+            action:AddElement,
+            elementId:2,
+            tag:'#text',
+            attrs:new VirtualElementAttributes(),
+            textValue:"Starlight Demo",
+            newParent:1,
+            newIndex:0
+        },
+        {
+            action:AddElement,
+            elementId:3,
+            tag:'input',
+            attrs:inputAttrs,
+            textValue:"",
+            newParent:null,
+            newIndex:1
+        }];
+
+        r.updateSets.push(updates);
+        assertEquals(1, r.updateSets.length);
+        assertEquals(null, r.lastUpdates);
+        r.render();
+        assertEquals(0, r.updateSets.length);
+        assertEquals(updates.length, r.lastUpdates.length);
+        r.lastUpdates = null;
+
+        r.render();
+        assertEquals(null, r.lastUpdates);
+    }
+
     public function testSelectAddtionWithValueSet() {
         var r = new Renderer();
         r.rootElement = Browser.document.body;
@@ -237,19 +314,40 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         assertElementValue('select', 'Two');
     }
-}
 
-class MockedRenderer extends Renderer {
-    public var lastEvent:PseudoEvent;
+    public function testSetAttributes() {
+        var el:ElementType = Browser.document.createElement("div");
+        var attrs1 = new VirtualElementAttributes();
+        // attrs.set("value", "Two");
+        attrs1.set("onclick", 1);  // At this level, events are represented by IDs.
+        attrs1.set("blur", true);
+        attrs1.set("random", 2);
+        attrs1.set("style", "color: red;");
 
-    public function new() {
-        super();
+        var r = new Renderer();
+        r.setAttributes(el, attrs1, 1);
 
-        rootComponent = cast {
-            triggerEvent: function(obj) {
-                lastEvent = obj;
-            }
-        };
+        assertEquals(1, r.postProcessing.get('blur'));
+        assertEquals('function', untyped __js__('typeof el.onclick'));
+        assertEquals('2', el.getAttribute('random'));
+
+        var attrs2 = new VirtualElementAttributes();
+        attrs2.set("onclick", 1);  // At this level, events are represented by IDs.
+        attrs2.set("random", null);
+        attrs2.set("style", "color: blue;");
+        r.setAttributes(el, attrs2, 1);
+
+        assertEquals('function', untyped __js__('typeof el.onclick'));
+        assertEquals(null, el.getAttribute('random'));
+
+        var el2:ElementType = Browser.document.createElement("input");
+        var attrs3 = new VirtualElementAttributes();
+        attrs3.set("onsubmit", 2);  // At this level, events are represented by IDs.
+        attrs3.set("type", "submit");
+        r.setAttributes(el2, attrs3, 1);
+
+        assertEquals('function', untyped __js__('typeof el2.onsubmit'));
+        assertEquals("submit", (untyped el2).type);
     }
 }
 

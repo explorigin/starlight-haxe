@@ -32,7 +32,6 @@ class Renderer {
     var rootComponent:Component;
     var rootElement:ElementType;
     var postProcessing = new UnsafeMap();
-    var existingEventMap = new IntMap();
     var elementCache = new IntMap();
     var updateSets = new Array<Array<ElementUpdate> >();
 
