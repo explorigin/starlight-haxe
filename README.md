@@ -44,13 +44,11 @@ See the src/examples directory for examples on how Starlight is used.
   - apply the real response
   - reapply the rewinded events until something looks different or we've returned to the current state
   - call it a "Time Warp"
-
 ### View layer
 
 - consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions (particularly important for scroll and mouseover events)
 - constrain render calls to 60 fps
 - element-motion tracking algorithm to make moving an element more efficient.
-- split between DOM renderer and component
 - nestable components
 - implement web-worker components
 - textarea and content-editable support

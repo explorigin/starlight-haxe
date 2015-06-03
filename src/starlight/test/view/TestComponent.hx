@@ -1,6 +1,7 @@
 package starlight.test.view;
 
 import starlight.core.Types.ElementType;
+import starlight.view.VirtualElement.VirtualElement;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.Component;
 import starlight.view.Component.ElementUpdate;
@@ -8,6 +9,19 @@ import starlight.view.Component.ElementAction.*;
 
 using Lambda;
 using starlight.view.VirtualElementTools;
+
+
+class MockComponent extends Component {
+    public var updateReturnValue:Array<ElementUpdate>;
+
+    override function update(nextState, currentState, ?parentId:Int) {
+        return updateReturnValue;
+    }
+
+    override function template() {
+        return [e('div')];
+    }
+}
 
 
 class TestComponent extends starlight.core.test.TestCase {
@@ -42,7 +56,6 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], []);
         assertNotEquals(next.id, null);
 
-        // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
 
         assertAddedUpdate(next.attrs, pendingUpdates[0]);
@@ -57,7 +70,6 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
     }
@@ -70,7 +82,6 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertTrue(attrEquals(next.attrs, pendingUpdates[0].attrs));
     }
@@ -86,14 +97,12 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('edit active', pendingUpdates[0].attrs.get('class'));
 
         pendingUpdates = new Component().update([again], [next]);
         assertEquals(again.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('edit', pendingUpdates[0].attrs.get('class'));
     }
@@ -107,14 +116,12 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals('checked', pendingUpdates[0].attrs.get('checked'));
 
         pendingUpdates = new Component().update([again], [next]);
         assertEquals(again.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertEquals(null, pendingUpdates[0].attrs.get('checked'));
     }
@@ -127,7 +134,6 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertEquals(next.id, nodeCount-1);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertTrue(pendingUpdates[0].attrs.exists('class'));
         assertEquals(pendingUpdates[0].attrs.get('class'), null);
@@ -139,7 +145,6 @@ class TestComponent extends starlight.core.test.TestCase {
 
         var pendingUpdates = new Component().update([next], [current]);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertRemovedUpdate(current.children[0].id, pendingUpdates[0]);
     }
@@ -152,24 +157,61 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], [current]);
         assertNotEquals(null, next.children[0].id);
 
-        // There should be updates that detail the transition steps.
         assertEquals(1, pendingUpdates.length);
         assertAddedUpdate(null, pendingUpdates[0]);
+    }
+
+    public function testNoChange() {
+        var current = e('h1', {"class": "test"});
+        var next = e('h1', {"class": "test"});
+
+        var c = new Component();
+        var pendingUpdates = c.update([next], [current]);
+        assertEquals(0, pendingUpdates.length);
+
+        current = {id: null, tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'};
+        next = {id: null, tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'};
+
+        pendingUpdates = c.update([next], [current]);
+        assertEquals(0, pendingUpdates.length);
     }
 
     public function testElementReplacement() {
         var current = e('h1');
         var next = e('h2');
+        var again = {id: null, tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'};
 
         current.id = nodeCount++;
-        var pendingUpdates = new Component().update([next], [current]);
+        var c = new Component();
+        var pendingUpdates = c.update([next], [current]);
         assertNotEquals(current.id, next.id);
 
-        // There should be updates that detail the transition steps.
         assertEquals(2, pendingUpdates.length);
         assertRemovedUpdate(current.id, pendingUpdates[0]);
 
         assertEquals('h2', pendingUpdates[1].tag);
+
+        pendingUpdates = c.update([again], [next]);
+        assertNotEquals(next.id, again.id);
+
+        assertEquals(2, pendingUpdates.length);
+        assertRemovedUpdate(next.id, pendingUpdates[0]);
+
+        assertEquals(VirtualElementTools.TEXT_TAG, pendingUpdates[1].tag);
+
+    }
+
+    public function testTextReplacement() {
+        var current = {id: null, tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'};
+        var next = {id: null, tag: VirtualElementTools.TEXT_TAG, textValue: 'bye'};
+
+        current.id = nodeCount++;
+        var c = new Component();
+        var pendingUpdates = c.update([next], [current]);
+
+        assertEquals(1, pendingUpdates.length);
+        assertEquals(UpdateElement, pendingUpdates[0].action);
+        assertEquals('bye', Reflect.field(pendingUpdates[0].attrs, 'textContent'));
     }
 
     public function testSelectElementValueOnAdd() {
@@ -183,7 +225,6 @@ class TestComponent extends starlight.core.test.TestCase {
 
         var pendingUpdates = new Component().update([next], []);
 
-        // There should be updates that detail the transition steps.
         assertEquals(6, pendingUpdates.length);
         assertEquals(pendingUpdates[pendingUpdates.length-1].action, UpdateElement);
         assertTrue(attrEquals(cast next.attrs, cast pendingUpdates[pendingUpdates.length-1].attrs));
@@ -238,5 +279,54 @@ class TestComponent extends starlight.core.test.TestCase {
 
         // This is not a stutter.  Running it twice to check idempotency.
         compareResults(r.replaceEventHandlers(attrs, 1));
+    }
+
+    public function testCheckState() {
+        var c = new MockComponent();
+        c.updateReturnValue = [];
+        assertEquals(0, c.currentState.length);
+        c.checkState();
+        assertEquals(0, c.currentState.length);
+        c.updateReturnValue = [{
+            elementId: 1,
+            action: AddElement
+        }];
+        c.checkState();
+        assertEquals(1, c.currentState.length);
+    }
+
+    public function testTriggerEvent() {
+        var c = new Component();
+        c.events.set(1, function(evt) {
+            assertEquals(1, evt.id);
+            assertEquals('test', evt.type);
+            return false;
+        });
+        c.triggerEvent({
+            id: 1,
+            which: null,
+            type: 'test',
+            target: {value: 'test_value', checked: null}
+        });
+
+        c.events.set(2, function(evt) {
+            assertEquals(2, evt.id);
+            assertEquals('test2', evt.type);
+        });
+        try {
+            c.triggerEvent({
+                id: 2,
+                which: null,
+                type: 'test2',
+                target: {value: 'test_value', checked: null}
+            });
+        } catch (e:Dynamic) {}
+
+        c.triggerEvent({
+            id: 3,
+            which: null,
+            type: 'test3',
+            target: {value: 'test_value', checked: null}
+        });
     }
 }

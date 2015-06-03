@@ -250,7 +250,6 @@ class VirtualElementTools {
                     // Add a string as a TextNode
                     childArray.push({
                         tag:VirtualElementTools.TEXT_TAG,
-                        children: [],
                         textValue: child
                     });
                 } else {

@@ -125,7 +125,7 @@ class Component {
     }
 
     /*
-     * update will bring the `currentState` to parity with `nextState` and return an array of necessary changes.
+     * update compares `currentState` to `nextState` and returns an array of necessary changes.
     */
     function update(nextState:Array<VirtualElement>, currentState:Array<VirtualElement>, ?parentId:Int):Array<ElementUpdate> {
         // TODO: implement a keying algorithm for efficient reordering
