@@ -234,8 +234,11 @@ class App {
         var store = new Store<Todo>('todomvc');
         var view = new View(store);
 
-        var r = new Renderer();
-        r.start(view, Browser.document.body);
+        var r = new Renderer([{
+            component: view,
+            root: Browser.document.body
+        }]);
+        r.start();
 
         var manager = new HistoryManager(function (newHash, oldHash) {
             view.filter = newHash;

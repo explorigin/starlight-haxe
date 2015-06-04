@@ -57,6 +57,7 @@ class Component {
         }
     }
 
+    @:keep
     public function triggerEvent(evt:PseudoEvent) {
         var eventHandler = events.get(evt.id);
 

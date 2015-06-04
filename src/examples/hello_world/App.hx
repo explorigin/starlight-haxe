@@ -26,7 +26,10 @@ class ViewModel extends Component {
 
 class App {
     static function main() {
-        var r = new Renderer();
-        r.start(new ViewModel(), Browser.document.body);
+        var r = new Renderer([{
+            component: new ViewModel(),
+            root: Browser.document.body
+        }]);
+        r.start();
     }
 }

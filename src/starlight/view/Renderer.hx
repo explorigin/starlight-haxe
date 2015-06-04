@@ -23,31 +23,54 @@ typedef PseudoEvent = {
     }
 };
 
+typedef ComponentAssignment = {
+    component: Component,
+    root: ElementType
+};
+
+typedef UpdateSet = {
+    id:Int,
+    updates: Array<ElementUpdate>
+};
+
 #if js
 
 @:allow(starlight.test.view)
 class Renderer {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
+    static var assignmentID = 0;
 
-    var rootComponent:Component;
-    var rootElement:ElementType;
+    var componentMap = new IntMap();
+    var elementMap = new IntMap();
     var postProcessing = new UnsafeMap();
     var elementCache = new IntMap();
-    var updateSets = new Array<Array<ElementUpdate> >();
+    var updateSets = new Array<UpdateSet>();
 
-    public function new() {};
+    public function new(?assignments:Array<ComponentAssignment>) {
+        if (assignments == null) {
+            return;
+        }
+        for (assignment in assignments) {
+            registerActiveComponent(assignment.component, assignment.root);
+        }
+    };
 
-    public function start(mainComponent:Component, root:ElementType) {
-        rootElement = root;
-        rootComponent = mainComponent;
+    function registerActiveComponent(c:Component, root:ElementType) {
+        var id = assignmentID++;
+        componentMap.set(id, c);
+        elementMap.set(id, root);
 
-        rootComponent.updatesAvailable.add(captureUpdates);  // FIXME - ensure idempotency
-
-        rootComponent.checkState();
+        c.updatesAvailable.add(captureUpdates.bind(id, _));
     }
 
-    function captureUpdates(updates: Array<ElementUpdate>) {
-        updateSets.push(updates);
+    public function start() {
+        for (assignmentId in componentMap.keys()) {
+            componentMap.get(assignmentId).checkState();
+        }
+    }
+
+    function captureUpdates(id:Int, updates: Array<ElementUpdate>) {
+        updateSets.push({id: id, updates: updates});
         FunctionTools.debounce(render);
     }
 
@@ -59,7 +82,9 @@ class Renderer {
         consumeUpdates(updateSets.pop());
     }
 
-    function buildEventHandler(eventId:Int) {
+    function buildEventHandler(eventId:Int, assignmentId:Int) {
+        var component = componentMap.get(assignmentId);
+
         return function(evt:Dynamic) {
             evt.stopPropagation();
 
@@ -73,12 +98,12 @@ class Renderer {
                 }
             }
 
-            rootComponent.triggerEvent(dataObject);
+            component.triggerEvent(dataObject);
         }
     }
 
 
-    function setAttributes(element:ElementType, attrs:VirtualElementAttributes, id:Int):Void {
+    function setAttributes(element:ElementType, attrs:VirtualElementAttributes, elementId:Int, assignmentId:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
         for (attrName in attrs.keys()) {
             var value = attrs.get(attrName);
@@ -88,9 +113,9 @@ class Renderer {
                 if (element.tagName != "input" || untyped __js__("element[attrName]") != value) {
                     var field = untyped __js__("element[attrName]");
                     if (attrName.indexOf("on") == 0) {
-                        (untyped element)[cast attrName] = buildEventHandler(value);
+                        (untyped element)[cast attrName] = buildEventHandler(value, assignmentId);
                     } else if (untyped __js__("typeof field") == 'function') {
-                        postProcessing.set(attrName, id);
+                        postProcessing.set(attrName, elementId);
                     } else {
                         (untyped element)[cast attrName] = value;
                     }
@@ -114,7 +139,7 @@ class Renderer {
         }
     }
 
-    inline function addElement(update:ElementUpdate) {
+    inline function addElement(update:ElementUpdate, assignmentId:Int) {
         var element:ElementType;
         var parent:ElementType;
 
@@ -122,20 +147,21 @@ class Renderer {
             element = cast js.Browser.document.createTextNode(update.textValue);
         } else {
             element = cast js.Browser.document.createElement(update.tag);
-            setAttributes(cast element, update.attrs, update.elementId);
+            setAttributes(cast element, update.attrs, update.elementId, assignmentId);
         }
         elementCache.set(update.elementId, cast element);
 
         if (update.newParent == null) {
-            parent = rootElement;
+            parent = elementMap.get(assignmentId);
         } else {
             parent = elementCache.get(update.newParent);
         }
+
         injectElement(element, parent, update.newIndex);
     }
 
-    inline function updateElement(update:ElementUpdate) {
-        setAttributes(cast elementCache.get(update.elementId), update.attrs, update.elementId);
+    inline function updateElement(update:ElementUpdate, assignmentId:Int) {
+        setAttributes(cast elementCache.get(update.elementId), update.attrs, update.elementId, assignmentId);
     }
 
     inline function removeElement(update:ElementUpdate) {
@@ -151,34 +177,34 @@ class Renderer {
             update.newIndex);
     }
 
-    function consumeUpdates(updates:Array<ElementUpdate>) {
+    function consumeUpdates(assignment:UpdateSet) {
         #if debugRendering
             trace('Starting update set.');
         #end
 
-        while (updates.length > 0) {
-            var elementUpdate = updates.shift();
+        while (assignment.updates.length > 0) {
+            var elementUpdate = assignment.updates.shift();
 
             #if debugRendering
                 trace(elementUpdate);
             #end
 
             switch(elementUpdate.action) {
-                case AddElement: addElement(elementUpdate);
-                case UpdateElement: updateElement(elementUpdate);
+                case AddElement: addElement(elementUpdate, assignment.id);
+                case UpdateElement: updateElement(elementUpdate, assignment.id);
                 case RemoveElement: removeElement(elementUpdate);
                 case MoveElement: moveElement(elementUpdate);
             }
         }
 
         for (method in postProcessing.keys()) {
-            var id = postProcessing.get(method);
+            var elementId = postProcessing.get(method);
 
             #if debugRendering
-                trace('postProcess calling $method on $id');
+                trace('postProcess calling $method on $elementId');
             #end
 
-            (untyped elementCache.get(id))[untyped method]();
+            (untyped elementCache.get(elementId))[untyped method]();
             postProcessing.remove(method);
         }
 
