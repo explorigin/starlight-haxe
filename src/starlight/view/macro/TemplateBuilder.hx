@@ -15,7 +15,7 @@ using starlight.view.VirtualElementTools;
 
 #end
 
-class ViewBuilder {
+class TemplateBuilder {
     public static var fieldMap = new haxe.ds.StringMap<Bool>();
 
     #if macro
@@ -24,9 +24,9 @@ class ViewBuilder {
         for (field in fields) {
             switch(field.kind) {
                 case FProp(_, _, _, _):
-                    ViewBuilder.fieldMap.set(field.name, true);
+                    TemplateBuilder.fieldMap.set(field.name, true);
                 default:
-                    ViewBuilder.fieldMap.set(field.name, false);
+                    TemplateBuilder.fieldMap.set(field.name, false);
             }
         }
 
@@ -41,7 +41,7 @@ class ViewBuilder {
                 case FieldType.FVar(cType, expr):
                     var name = member.name;
 
-                    if (!ViewBuilder.fieldMap.exists(member.name) || ViewBuilder.fieldMap.get(member.name) == false) {
+                    if (!TemplateBuilder.fieldMap.exists(member.name) || TemplateBuilder.fieldMap.get(member.name) == false) {
                         continue;
                     }
 
@@ -258,9 +258,9 @@ class ViewBuilder {
 
         switch(param) {
             case {expr: EConst(CIdent(potentialProperty)), pos:pPos}:
-                if (ViewBuilder.fieldMap.exists(potentialProperty)) {
-                    if (ViewBuilder.fieldMap.get(potentialProperty) == false) {
-                        ViewBuilder.fieldMap.set(potentialProperty, true);
+                if (TemplateBuilder.fieldMap.exists(potentialProperty)) {
+                    if (TemplateBuilder.fieldMap.get(potentialProperty) == false) {
+                        TemplateBuilder.fieldMap.set(potentialProperty, true);
                     }
                     eventTarget = {expr: EConst(CIdent('set_$potentialProperty')), pos:pPos}
                 } else {

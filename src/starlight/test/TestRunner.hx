@@ -40,7 +40,7 @@ class TestRunner {
 #end
 
 #if js
-        var coverageResults = el.innerText;
+        var coverageResults = el.textContent;
         el.innerHTML = coverageResults;
 #end
     }
