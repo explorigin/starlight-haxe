@@ -47,7 +47,8 @@ See the src/examples directory for examples on how Starlight is used.
 
 ### View layer
 
-- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions (particularly important for scroll and mouseover events)
+- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions (particularly important for mouseover events)
+- black-list some tag types ("script", "style", "embed", "object", "param")
 - element-motion tracking algorithm to make moving an element more efficient.
 - nestable components
 - implement web-worker components
