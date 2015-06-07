@@ -79,20 +79,16 @@ class View extends Component {
         filter = 'all';
     }
 
-    function onToggleChangeFactory(index:Int) {
-        return function onToggleChange(evt:Dynamic) {
-            todos[index].completed = evt.target.checked;
-            store.update(todos[index]);
-        }
+    function onToggleChange(index:Int, evt:Dynamic) {
+        todos[index].completed = evt.target.checked;
+        store.update(todos[index]);
     }
 
-    function onLabelClickFactory(index:Int) {
-        return function onLabelClick() {
-            editingIndex = index;
-            abortEdit = false;
-            editTodoValue = todos[index].title;
-            editBlurMethod = onEditBlurFactory(index);
-        }
+    function onLabelClick(index:Int) {
+        editingIndex = index;
+        abortEdit = false;
+        editTodoValue = todos[index].title;
+        editBlurMethod = onEditBlur.bind(index);
     }
 
     function onEditKeyUp(evt:Dynamic) {
@@ -108,32 +104,28 @@ class View extends Component {
         return true;
     }
 
-    function onEditBlurFactory(index:Int) {
-        return function onEditBlur() {
-            var val = editTodoValue.trim();
+    function onEditBlur(index:Int) {
+        var val = editTodoValue.trim();
 
-            editingIndex = -1;
+        editingIndex = -1;
 
-            if (abortEdit) {
-                abortEdit = false;
-                trace('resetting todoValue');
-                editTodoValue = todos[index].title;
-            } else if (val != '') {
-                todos[index].title = val;
-                store.update(todos[index]);
-            } else {
-                if (store.remove(todos[index].id)) {
-                    todos.splice(index, 1);
-                }
+        if (abortEdit) {
+            abortEdit = false;
+            trace('resetting todoValue');
+            editTodoValue = todos[index].title;
+        } else if (val != '') {
+            todos[index].title = val;
+            store.update(todos[index]);
+        } else {
+            if (store.remove(todos[index].id)) {
+                todos.splice(index, 1);
             }
         }
     }
 
-    function onDestroyClickFactory(index:Int) {
-        return function onDestroyClick() {
-            if (store.remove(todos[index].id)) {
-                todos.splice(index, 1);
-            }
+    function onDestroyClick(index:Int) {
+        if (store.remove(todos[index].id)) {
+            todos.splice(index, 1);
         }
     }
 
@@ -164,10 +156,10 @@ class View extends Component {
                         e('input.toggle', {
                             type:"checkbox",
                             checked: item.completed,
-                            onchange: onToggleChangeFactory(index)
+                            onchange: onToggleChange.bind(index)
                         }),
-                        e('label', {onclick: onLabelClickFactory(index)}, item.title),
-                        e('button.destroy', {onclick: onDestroyClickFactory(index)})
+                        e('label', {onclick: onLabelClick.bind(index)}, item.title),
+                        e('button.destroy', {onclick: onDestroyClick.bind(index)})
                     ]),
                     if (index == editingIndex)
                         e('input.edit', {
