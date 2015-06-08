@@ -1,0 +1,16 @@
+{
+    "name": "starlight",
+    "url" : "https://repo.thecookiejar.me/explorigin/starlight/",
+    "license": "proprietary",
+    "tags": ["cross", "js", "web", "html5", "haxe", "javascript", "macro", "html", "ufront"],
+    "description": "This library is a Haxe-targed, experimental, (mainly) front-end web framework.",
+    "version": "0.0.1",
+    "classPath": "src/",
+    "releasenote": "This is my own private playground.",
+    "contributors": ["explorigin"],
+    "dependencies": {
+        "tink_macro": "0.6.4",
+        "mcover": "2.1.1",
+        "msignal": "3.5.5"
+    }
+}
