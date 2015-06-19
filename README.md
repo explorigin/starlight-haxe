@@ -42,8 +42,7 @@ See the src/examples directory for examples on how Starlight can be used.
 ### View layer
 
 - element-motion tracking algorithm to make moving an element more efficient.
-- consider mapping all event handlers to the root node and use event bubbling to have fewer DOM interactions (particularly important for mouseover events because these sorts of things can create tons of event handlers when just one pulls events into Javascript-land just as well.)
-- black-list some tag types ("script", "style", "embed", "object", "param")
+- black-list some tag types ("script", "style")
 - nestable components
 - implement web-worker components
 - textarea and content-editable support

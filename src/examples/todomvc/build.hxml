@@ -11,13 +11,10 @@
 # -D debugRendering
 
 # Use full dead-code elimination.
--dce full
+ -dce full
 
 # Adding the debug flag will generate source-maps however, it is often easier to debug with just the unminified Javascript
-# -debug
-
-# Export multiple AMD modules
-#--macro starlight.core.JsGenerator.use()
+-debug
 
 # Specify the entry-point into our application
 -main todomvc.App
