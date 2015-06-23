@@ -83,7 +83,7 @@ class VirtualElementTools {
 
     public static function buildClassString(obj:UnsafeMap):String {
 #if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (obj.get(key) == true) key].join(' ');
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (cast obj.get(key)) key].join(' ');
 #else
         return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
 #end
@@ -104,75 +104,12 @@ class VirtualElementTools {
     }
 #end
 
-    /* element is purely a convenience function for helping to create views. */
-    public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
+    public inline static function parseSignature(signature:String):starlight.view.VirtualElement {
         var tagName = 'div';
-        var attrs = new VirtualElementAttributes();
-        var childArray:VirtualElementChildren = new VirtualElementChildren();
-
+        var attrs = new UnsafeMap();
         var classes = new Array<String>();
-        var paramChildArray:Array<Dynamic>;
-
-        // Allow the short form of specifying children without attributes.
-        switch(Type.typeof(attrStruct)) {
-            case TClass(s): {
-                switch(Type.getClassName(s)) {
-                    case 'String': {
-                        paramChildArray = new Array<Dynamic>();
-                        paramChildArray.push(attrStruct);
-                    }
-                    case 'Array': {
-                        paramChildArray = cast attrStruct;
-                    }
-                    default: throw new TypeException("Invalid Type passed to View.element for attributes");
-                }
-                attrStruct = {};
-            }
-            case TObject: {
-                switch(Type.typeof(children)) {
-                    case TClass(s): {
-                        switch(Type.getClassName(s)) {
-                            case 'String': {
-                                paramChildArray = new Array<Dynamic>();
-                                paramChildArray.push(children);
-                            }
-                            case 'Array': {
-                                paramChildArray = cast children;
-                            }
-                            default: throw new TypeException("Invalid Type passed to View.element for children");
-                        }
-                    }
-                    case TNull: {}
-                    default: throw new TypeException("Invalid Type passed to View.element for children");
-                }
-            }
-            case TNull: {
-                attrStruct = {};
-            }
-            case TEnum(e): {
-                throw new TypeException('Elements can\'t set attributes to enum: $e');
-            }
-            case TFunction: {
-                // TODO - This should run the function and reclassify it through this switch statement as a child.
-                paramChildArray = new Array<Dynamic>();
-                var child = attrStruct();
-                switch(Type.getClassName(child)) {
-                    case 'String': paramChildArray.push(child);
-                    case 'Array': paramChildArray = cast child;
-                    default: paramChildArray.push('' + child);
-                }
-                attrStruct = {};
-            }
-            default: {
-                paramChildArray = new Array<Dynamic>();
-                paramChildArray.push('' + attrStruct);
-                attrStruct = {};
-            }
-        }
-
-        var classAttrName = Reflect.hasField(attrStruct, "class") ? "class" : "className";
-
         var signatureRemaining = signature;
+
         function smallestPositive(a, b) {
             if (a == b) return 0;
             if (a < 0) a = a*-10000;
@@ -182,6 +119,7 @@ class VirtualElementTools {
             else
                 return -1;
         }
+
         function getNext(str:String) {
             var indexes = [
                 str.indexOf('.'),
@@ -225,26 +163,109 @@ class VirtualElementTools {
             nextElementIndex = getNext(signatureRemaining.substr(1));
         }
 
+        if (classes.length > 0) {
+            var classAttr = new UnsafeMap();
+            for (cls in classes) {
+                classAttr.set(cls, true);
+            }
+            attrs.set('class', classAttr);
+        }
+
+        return {tag: tagName, attrs: attrs};
+    }
+
+    /* element is purely a convenience function for helping to create views. */
+    public static function element(signature:String, ?attrStruct:Dynamic, ?children:Dynamic):VirtualElement {
+        var childArray:VirtualElementChildren = new VirtualElementChildren();
+        var paramChildArray = new Array<Dynamic>();
+
+        // Allow the short form of specifying children without attributes.
+        switch(Type.typeof(attrStruct)) {
+            case TClass(s): {
+                switch(Type.getClassName(s)) {
+                    case 'String': {
+                        paramChildArray.push(attrStruct);
+                    }
+                    case 'Array': {
+                        paramChildArray = cast attrStruct;
+                    }
+                    default: throw new TypeException("Invalid Type passed to View.element for attributes");
+                }
+                attrStruct = {};
+            }
+            case TObject: {
+                switch(Type.typeof(children)) {
+                    case TClass(s): {
+                        switch(Type.getClassName(s)) {
+                            case 'String': {
+                                paramChildArray.push(children);
+                            }
+                            case 'Array': {
+                                paramChildArray = cast children;
+                            }
+                            default: throw new TypeException("Invalid Type passed to View.element for children");
+                        }
+                    }
+                    case TNull: {}
+                    default: throw new TypeException("Invalid Type passed to View.element for children");
+                }
+            }
+            case TNull: {
+                attrStruct = {};
+            }
+            case TEnum(e): {
+                throw new TypeException('Elements can\'t set attributes to enum: $e');
+            }
+            case TFunction: {
+                // TODO - This should run the function and reclassify it through this switch statement as a child.
+                var child = attrStruct();
+                switch(Type.getClassName(child)) {
+                    case 'String': paramChildArray.push(child);
+                    case 'Array': paramChildArray = cast child;
+                    default: paramChildArray.push('' + child);
+                }
+                attrStruct = {};
+            }
+            default: {
+                paramChildArray.push('' + attrStruct);
+                attrStruct = {};
+            }
+        }
+
+        var ve = parseSignature(signature);
+        var attrs:VirtualElementAttributes = ve.attrs;
+        var classes:UnsafeMap;
+
+        if (attrs.exists('class')) {
+            classes = attrs.get('class');
+        } else {
+            classes = new UnsafeMap();
+        }
+
         for (attrName in Reflect.fields(attrStruct)) {
             var value = Reflect.field(attrStruct, attrName);
-            if (attrName == classAttrName) {
-                classes = classes.concat(cast switch(Type.typeof(value)) {
-                    case TObject: [for (key in Reflect.fields(value)) if (Reflect.field(value, key)) key];
-                    case TClass(s): [value];  // Here we just assume that it is a string value.
+            if (attrName == 'class') {
+                switch(Type.typeof(value)) {
+                    case TObject: {
+                        for (key in Reflect.fields(value)) {
+                            classes.set(key, Reflect.field(value, key));
+                        }
+                    }
+                    case TClass(s): classes.set(value, true);
                     default: throw new TypeException("InvalidType passed to element.class");
-                });
-            } else if (tagName == 'input' && attrName == 'checked') {
+                }
+            } else if (ve.tag == 'input' && attrName == 'checked') {
                 attrs.set(attrName, if (cast value) 'checked' else null);
             } else {
                 attrs.set(attrName, value);
             }
         }
 
-        if (classes.length > 0) {
-            attrs.set('class', classes.join(" "));
+        if ([for (key in classes.keys()) true].length > 0) {
+            attrs.set('class', buildClassString(classes));
         }
 
-        if (paramChildArray != null) {
+        if (paramChildArray.length > 0) {
             for (child in paramChildArray) {
                 if (Type.getClass(child) == String) {
                     // Add a string as a TextNode
@@ -259,7 +280,7 @@ class VirtualElementTools {
         }
 
         return {
-            tag:tagName,
+            tag:ve.tag,
             attrs:attrs,
             children:childArray
         };

@@ -3,8 +3,10 @@ package starlight.view.macro;
 #if macro
 import haxe.macro.Context;
 import haxe.macro.Expr;
-import haxe.macro.Type;
+import haxe.macro.Type as MacroType;
 
+import starlight.core.Types.UnsafeMap;
+import starlight.core.Exceptions;
 import starlight.view.VirtualElement;
 import starlight.view.VirtualElementTools;
 
@@ -13,6 +15,7 @@ using tink.MacroApi;
 using haxe.macro.ExprTools;
 using starlight.view.VirtualElementTools;
 
+typedef ObjectFieldSet = Array<{field:String, expr:Expr}>;
 #end
 
 class TemplateBuilder {
@@ -133,8 +136,10 @@ class TemplateBuilder {
                     tagPos = tPos;
                     childrenExpr = {expr: EArrayDecl([]), pos: tPos};
                 default:
-                    throw 'Invalid signature: ${paramArray[0]}';
+                    throw new SyntaxException('Cannot preprocess elements that have a dynamic signature ("${paramArray[0]}").');
             }
+        } else {
+            throw new SyntaxException('Cannot preprocess elements that have no parameters');
         }
 
         if (paramArray.length == 2) {
@@ -154,7 +159,7 @@ class TemplateBuilder {
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
                     childrenExpr = paramArray[1];
-                //  e('signature', ?)
+                //  e('signature', ?) -> Assume that the parameter is to be interpreted as a child textNode
                 case {expr: EConst(CString(s)), pos: ePos}:
                     var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
@@ -162,7 +167,8 @@ class TemplateBuilder {
                     var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
                 default:
-                    throw 'Invalid attributes: ${paramArray[1]}';
+                    var expr = buildTextElement(paramArray[1]);
+                    childrenExpr = {expr: EArrayDecl([expr]), pos: Context.currentPos()};
             }
         }
 
@@ -196,31 +202,65 @@ class TemplateBuilder {
             }
         }
 
-        var virtualElement = VirtualElementTools.element(signature);
+        var virtualElement = VirtualElementTools.parseSignature(signature);
 
         var tagName = Context.makeExpr(virtualElement.tag, tagPos);
-        var objfields = new Array<{field:String, expr:Expr}>();
+        var attrObjectFields = new ObjectFieldSet();
+        var classObjectFields = new ObjectFieldSet();
+        var classes = new Array<String>();
+        var classPos = tagPos;
+
         for (key in virtualElement.attrs.keys()) {
             var value = virtualElement.attrs.get(key);
 
-            if (attributes.exists(key) || attributes.exists("@$__hx__" + key)) {
-                Context.warning('overwriting $key', Context.currentPos());
-            }
+            if (key == 'class') {
+                switch(Type.typeof(value)) {
+                    case TObject: {
+                        for (cls in cast(value, UnsafeMap).keys()) {
+                            classes.push(cls);
+                        }
+                    }
+                    case TClass(s):
+                        switch(Type.getClassName(s)) {
+                            case 'String':
+                                classes.push(value);
+                            case 'haxe.ds.StringMap':
+                                var val:haxe.ds.StringMap<Bool> = value;
+                                for (cls in val.keys()) {
+                                    classes.push(cls);
+                                }
+                            default:
+                                throw new TypeException('Don\'t know how to handle ${Type.getClassName(s)}');
+                        }
+                    default:
+                        throw new TypeException('Don\'t know how to handle ${Type.typeof(value)}');
+                 }
+            } else {
+                if (attributes.get(key) != null) {
+                    Context.warning('For tag "$tagName", overwriting "$key": "${attributes.get(key)}" -> "${virtualElement.attrs.get(key)}"', Context.currentPos());
+                }
 
-            attributes.set(key, makeField(key, value));
+                attributes.set(key, makeField(key, value));
+            }
         }
+
         for (key in attributes.keys()) {
             var value = attributes.get(key);
+
             if (key == "@$__hx__class") {
                 switch(value.expr) {
                     case {expr: EObjectDecl(fields), pos: oPos}:
-                        value = {
-                            field:'class',
-                            expr: macro starlight.view.VirtualElementTools.buildClassString(untyped ${value.expr})
+                        for (field in fields) {
+                            classObjectFields.push({field:field.field, expr:field.expr });
+                            classPos = oPos;
                         }
                     default:
+                        if (classes.length > 0) {
+                            throw new SyntaxException("Cannot combine class statement with selector-specified classes.");
+                        }
+                        // Here we assume that if it's not an object then it will result in a string.
+                        attrObjectFields.push(value);
                 };
-                objfields.push(value);
             } else if (key.indexOf('on') == 0) {
                 switch(value.expr) {
                     case {expr: ECall({expr: EConst(CIdent('setValue')), pos: iPos}, params), pos: cPos}:
@@ -233,12 +273,30 @@ class TemplateBuilder {
                         };
                     default:
                 };
-                objfields.push(value);
+                attrObjectFields.push(value);
             } else {
-                objfields.push(value);
+                attrObjectFields.push(value);
             }
         }
-        var attrExpr = {expr: EObjectDecl(objfields),
+
+        if (classes.length > 0 || classObjectFields.length > 0) {
+            for (cls in classes) {
+                classObjectFields.push({
+                    field:cls,
+                    expr:macro true
+                });
+            }
+            var classExpr = {expr: EObjectDecl(classObjectFields),
+                pos: classPos
+            }
+
+            attrObjectFields.push({
+                field:'class',
+                expr: macro starlight.view.VirtualElementTools.buildClassString(untyped ${classExpr})
+            });
+        }
+
+        var attrExpr = {expr: EObjectDecl(attrObjectFields),
             pos: Context.currentPos()
         };
 
@@ -277,7 +335,7 @@ class TemplateBuilder {
     static function makeField(key, value) {
         return {
             field: key,
-            expr: Context.makeExpr(value, Context.currentPos())
+            expr: macro '$value'
         };
     }
 
