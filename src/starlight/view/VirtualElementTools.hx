@@ -94,13 +94,7 @@ class VirtualElementTools {
         // Calls to this function are automatically inserted with the view builder macro.
         // In some cases, it is impossible to know at compile-type what some template values
         // are.  In these cases, we punt to runtime.
-        var retVal = new Array<VirtualElement>();
-        if (untyped __js__('Array').isArray(result)) {
-            retVal = cast result;
-        } else {
-            retVal = [{tag: VirtualElementTools.TEXT_TAG, textValue: untyped result}];
-        }
-        return retVal;
+        return if (untyped __js__('Array').isArray(result)) result else [{tag: VirtualElementTools.TEXT_TAG, textValue: untyped result}];
     }
 #end
 
