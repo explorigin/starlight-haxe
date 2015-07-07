@@ -5,7 +5,7 @@ import starlight.core.Exceptions.TypeException;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElementChildren;
 
-using starlight.core.StringTools;
+using StringTools;
 
 class VirtualElementTools {
     static var BOOLEAN_ATTRIBUTES = [

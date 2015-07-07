@@ -102,7 +102,6 @@ class Renderer {
         }
     }
 
-
     function setAttributes(element:ElementType, attrs:VirtualElementAttributes, elementId:Int, assignmentId:Int):Void {
         // TODO: Consider denormalizing element.tagName to avoid a DOM call.
         for (attrName in attrs.keys()) {

@@ -6,8 +6,7 @@ import starlight.view.Renderer;
 import starlight.view.Component;
 import starlight.router.HistoryManager;
 
-using starlight.core.StringTools;
-using starlight.core.ArrayTools;
+using Lambda;
 
 class View extends Component {
     static inline var ENTER_KEY = 13;
@@ -105,7 +104,7 @@ class View extends Component {
     }
 
     function onEditBlur(index:Int) {
-        var val = editTodoValue.trim();
+        var val = (untyped editTodoValue).trim();  // Use ES5 String.trim
 
         editingIndex = -1;
 
@@ -147,7 +146,7 @@ class View extends Component {
             ]);
         }
 
-        function itemView(item:Todo, ?index:Int) {
+        function itemView(index:Int, item:Todo) {
             return e('li', {
                     "data-id":item.id,
                     "class":{completed: item.completed, editing: index == editingIndex}

@@ -1,7 +1,7 @@
 package starlight.router;
 
 import msignal.Signal;
-import starlight.core.StringTools;
+
 #if js
 import js.Browser.window;
 #else
@@ -66,10 +66,10 @@ class HistoryManager {
     // This would normally be static but connecting it to the class enables testing.
     function getWindowHash() {
         var hash:String = StringTools.urlDecode(window.location.hash);
-        return if (hash.charAt(0) == '#') StringTools.substr(hash, 1, hash.length) else hash;
+        return if (hash.charAt(0) == '#') (untyped hash).substr(1, hash.length) else hash;
     }
 
     static inline function trimHash(hash:String) {
-        return if (hash.charAt(0) == '/') StringTools.substr(hash, 1, hash.length) else hash;
+        return if (hash.charAt(0) == '/') (untyped hash).substr(1, hash.length) else hash;
     }
 }

@@ -5,7 +5,7 @@
 -cp ../../
 
 # Create output that takes advantage of browsers that implement ECMAScript 5
--D js-es5
+-D js_es5
 -D analyzer
 
 # -D debugRendering
@@ -22,6 +22,7 @@
 # Include some used external libraries
 -lib msignal
 -lib tink_macro
+-lib es6-coretypes
 
 # create a Javascript file at js/app.js
 -js js/app.js
