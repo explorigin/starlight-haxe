@@ -3,6 +3,8 @@ package starlight.test.view;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElement.VirtualElementChildren;
 import starlight.view.VirtualElement;
+import starlight.view.Component;
+import starlight.view.macro.ElementBuilder.e;
 
 using starlight.view.VirtualElementTools;
 using StringTools;
@@ -216,40 +218,39 @@ class TestElementCreation extends starlight.core.test.TestCase {
         }
     }
 
+#if js
     public function testVoidGeneration() {
-        var ve = VirtualElementTools.element('br');
+        var ve:VirtualElement = cast e('br');
         assertVoidHTMLEquals('<br>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('input', {"class": "text"});
+        var ve = e('input', {"class": "text"});
         assertVoidHTMLEquals('<input class="text">', ve.toHTML());
 
-        var ve = VirtualElementTools.element('input[type=checkbox]', {"class": "text", "checked": true});
+        var ve = e('input[type=checkbox]', {"class": "text", "checked": true});
         assertVoidHTMLEquals('<input class="text" type="checkbox" checked>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('input#id.header', {"data-bind": "value: text"});
+        var ve = e('input#id.header', {"data-bind": "value: text"});
         assertVoidHTMLEquals('<input id="id" class="header" data-bind="value: text">', ve.toHTML());
     }
 
     public function testStandardTagGeneration() {
-        var ve = VirtualElementTools.element('h1');
+        var ve = e('h1');
         assertHTMLEquals('<h1></h1>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('h2', {"class": "text"});
+        var ve = e('h2', {"class": "text"});
         assertHTMLEquals('<h2 class="text"></h2>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('.text');
+        var ve = e('.text');
         assertHTMLEquals('<div class="text"></div>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('');
+        var ve = e('');
         assertHTMLEquals('<div></div>', ve.toHTML());
 
-        var ve = VirtualElementTools.element('span#id.header', {"data-bind": "value: text"});
+        var ve = e('span#id.header', {"data-bind": "value: text"});
         assertHTMLEquals('<span id="id" class="header" data-bind="value: text"></span>', ve.toHTML());
     }
 
     public function testNestedTagGeneration() {
-        var e = VirtualElementTools.element;
-
         var ve = e('h1', {}, ['hi']);
         assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
 
@@ -267,8 +268,6 @@ class TestElementCreation extends starlight.core.test.TestCase {
     }
 
     public function testTagGenerationWithOptionalAttributes() {
-        var e = VirtualElementTools.element;
-
         var ve = e('h1', ['hi']);
         assertHTMLEquals('<h1>hi</h1>', ve.toHTML());
 
@@ -278,5 +277,7 @@ class TestElementCreation extends starlight.core.test.TestCase {
         var ve = e('h1', ['hi', e('span', {"class": "header"}, ["Title"])]);
         assertHTMLEquals('<h1>hi<span class="header">Title</span></h1>', ve.toHTML());
     }
+#end
+
 }
 

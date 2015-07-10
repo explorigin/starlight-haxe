@@ -33,13 +33,12 @@ typedef ElementUpdate = {
 typedef PropertySetter<T> = T->T;
 
 @:allow(starlight.test.view)
-@:autoBuild(starlight.view.macro.TemplateBuilder.build())
+@:autoBuild(starlight.view.macro.PropertyBuilder.build())
 class Component {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var nodeCounter = 0;
     static var eventCounter = 0;
 
-    var e = VirtualElementTools.element;  //  A shortcut for easy access in the `view` method.
     var events = new IntMap();
     var existingEventMap = new IntMap();
     public var elementCache = new IntMap();

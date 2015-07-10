@@ -18,73 +18,12 @@ using starlight.view.VirtualElementTools;
 typedef ObjectFieldSet = Array<{field:String, expr:Expr}>;
 #end
 
-class TemplateBuilder {
-    public static var fieldMap = new haxe.ds.StringMap<Bool>();
+class ElementBuilder {
+    public static macro function e(params:Array<Expr>) {
+        return extractStructure(params);
+    }
 
     #if macro
-    macro static public function build(): Array<Field> {
-        var fields = Context.getBuildFields();
-        for (field in fields) {
-            switch(field.kind) {
-                case FProp(_, _, _, _):
-                    TemplateBuilder.fieldMap.set(field.name, true);
-                default:
-                    TemplateBuilder.fieldMap.set(field.name, false);
-            }
-        }
-
-        return convertVarsToProperties(fields.map(findViewFields));
-    }
-
-    static function convertVarsToProperties(fields: Array<Field>):Array<Field> {
-        var newFields = new Array<Field>();
-
-        for (member in fields) {
-            switch (member.kind) {
-                case FieldType.FVar(cType, expr):
-                    var name = member.name;
-
-                    if (!TemplateBuilder.fieldMap.exists(member.name) || TemplateBuilder.fieldMap.get(member.name) == false) {
-                        continue;
-                    }
-
-                    var field = ['this', name].drill();
-                    var frun = FieldType.FFun({
-                        ret: macro :String,
-                        params: [],
-                        expr: macro return ${field.assign('value'.resolve())},
-                        args: [{name: 'value', type: null, opt: false, value: null }]
-                    });
-
-                    var setter = {
-                        kind: frun,
-                        meta: [],
-                        name: 'set_$name',
-                        doc: null,
-                        pos: Context.currentPos(),
-                        access: [APrivate]
-                    };
-                    newFields.push(setter);
-
-                    member.addMeta(':isVar', member.pos);
-                    member.kind = FProp('default', 'set_$name', cType, expr);
-                default:
-            }
-        }
-
-        return fields.concat(newFields);
-    }
-
-    static function findViewFields(field: Field) {
-        return switch (field.kind) {
-            case FieldType.FFun(func):
-                if (field.meta.toMap().exists(':prerender')) {
-                    func.expr = func.expr.map(matchElementCalls);
-                }
-                field;
-            default: field;
-        }
-    }
 
     static function matchElementCalls(e: Expr):Expr {
         return filterElementCalls(e, false);
@@ -154,7 +93,7 @@ class TemplateBuilder {
                 //  e('signature', func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro starlight.view.VirtualElementTools.buildChildren(untyped ${paramArray[1]});
+                    childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[1]});
 
                 //  e('signature', [])
                 case {expr: EArrayDecl(_), pos: _}:
@@ -192,7 +131,7 @@ class TemplateBuilder {
                 //  e('signature', ?, func())
                 case {expr: ECall(_), pos: _}:
                     matchChildren = false;
-                    childrenExpr = macro starlight.view.VirtualElementTools.buildChildren(untyped ${paramArray[2]});
+                    childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
                 case {expr: _, pos: ePos}:
                     var expr = buildTextElement(paramArray[2]);
@@ -251,7 +190,16 @@ class TemplateBuilder {
                 switch(value.expr) {
                     case {expr: EObjectDecl(fields), pos: oPos}:
                         for (field in fields) {
-                            classObjectFields.push({field:field.field, expr:field.expr });
+                            switch(field.expr) {
+                                case {expr: EConst(CIdent(include)), pos: _}:
+                                    if (include == "true") {
+                                        classes.push(field.field);
+                                    } else if (include != "false") {
+                                        classObjectFields.push({field:field.field, expr:field.expr});
+                                    }
+                                default:
+                                    classObjectFields.push({field:field.field, expr:field.expr});
+                            }
                             classPos = oPos;
                         }
                     default:
@@ -261,75 +209,59 @@ class TemplateBuilder {
                         // Here we assume that if it's not an object then it will result in a string.
                         attrObjectFields.push(value);
                 };
-            } else if (key.indexOf('on') == 0) {
+            } else if (key == "@$__hx__checked") {
                 switch(value.expr) {
-                    case {expr: ECall({expr: EConst(CIdent('setValue')), pos: iPos}, params), pos: cPos}:
-                        value.expr = {
-                            expr: ECall(
-                                {expr: EConst(CIdent('setValue')), pos: iPos},
-                                [for (p in params) convertPropertyReferenceToSetterForEvents(p)]
-                            ),
-                            pos: cPos
-                        };
+                    case {expr: EConst(CIdent(checked)), pos: oPos}:
+                        if (checked == "true") {
+                            value.expr = {expr: EConst(CString("checked")), pos: oPos}
+                            attrObjectFields.push(value);
+                        }
                     default:
-                };
-                attrObjectFields.push(value);
+                        value.expr = macro if (${value.expr}) "checked" else null;
+                        attrObjectFields.push(value);
+                }
             } else {
                 attrObjectFields.push(value);
             }
         }
 
         if (classes.length > 0 || classObjectFields.length > 0) {
-            for (cls in classes) {
-                classObjectFields.push({
-                    field:cls,
-                    expr:macro true
+            if (classObjectFields.length == 0) {
+                var classStr = Context.makeExpr(classes.join(' '), classPos);
+                attrObjectFields.push({
+                    field:'class',
+                    expr: classStr
+                });
+            } else {
+                for (cls in classes) {
+                    classObjectFields.push({
+                        field:cls,
+                        expr:macro true
+                    });
+                }
+                var classExpr = {
+                    expr: EObjectDecl(classObjectFields),
+                    pos: classPos
+                }
+
+                attrObjectFields.push({
+                    field:'class',
+                    expr: macro starlight.view.Component.buildClassString(untyped ${classExpr})
                 });
             }
-            var classExpr = {expr: EObjectDecl(classObjectFields),
-                pos: classPos
-            }
-
-            attrObjectFields.push({
-                field:'class',
-                expr: macro starlight.view.VirtualElementTools.buildClassString(untyped ${classExpr})
-            });
         }
 
-        var attrExpr = {expr: EObjectDecl(attrObjectFields),
-            pos: Context.currentPos()
-        };
+        var attrExpr = {expr: EObjectDecl(attrObjectFields), pos: classPos};
 
         if (matchChildren) {
             childrenExpr = childrenExpr.map(matchElementCallsAndStrings);
         }
 
-        return macro untyped {
+        return macro ({
             tag: ${tagName},
-            attrs: $attrExpr,
+            attrs: untyped ${attrExpr},
             children: $childrenExpr
-        };
-    }
-
-    static function convertPropertyReferenceToSetterForEvents(param:Expr) {
-        var eventTarget:Expr;
-
-        switch(param) {
-            case {expr: EConst(CIdent(potentialProperty)), pos:pPos}:
-                if (TemplateBuilder.fieldMap.exists(potentialProperty)) {
-                    if (TemplateBuilder.fieldMap.get(potentialProperty) == false) {
-                        TemplateBuilder.fieldMap.set(potentialProperty, true);
-                    }
-                    eventTarget = {expr: EConst(CIdent('set_$potentialProperty')), pos:pPos}
-                } else {
-                    Context.warning('calling setValue($potentialProperty) where "$potentialProperty" is not a field of this class;', pPos);
-                    eventTarget = {expr: EConst(CIdent(potentialProperty)), pos:pPos};
-                }
-            default:
-                param;
-        }
-
-        return eventTarget;
+        }:starlight.view.VirtualElement);
     }
 
     static function makeField(key, value) {
@@ -338,6 +270,5 @@ class TemplateBuilder {
             expr: macro '$value'
         };
     }
-
     #end
 }

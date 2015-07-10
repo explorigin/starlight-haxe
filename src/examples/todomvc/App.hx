@@ -5,8 +5,7 @@ import js.Browser;
 import starlight.view.Renderer;
 import starlight.view.Component;
 import starlight.router.HistoryManager;
-
-using Lambda;
+import starlight.view.macro.ElementBuilder.e;
 
 class View extends Component {
     static inline var ENTER_KEY = 13;
@@ -128,7 +127,6 @@ class View extends Component {
         }
     }
 
-    @:prerender
     override function template() {
         var currentTodos = getFilteredTodos();
         var todoCount = todos.length;
@@ -146,7 +144,7 @@ class View extends Component {
             ]);
         }
 
-        function itemView(index:Int, item:Todo) {
+        function itemView(item:Todo, index:Int) {
             return e('li', {
                     "data-id":item.id,
                     "class":{completed: item.completed, editing: index == editingIndex}
@@ -189,7 +187,7 @@ class View extends Component {
                 e('section#main', {"class":{hidden: todoCount == 0}}, [
                     e('input#toggle-all', {"type":"checkbox", onchange:onToggleAllChange}),
                     e('label', {"for":"toggle-all"}, "Mark all as complete"),
-                    e('ul#todo-list', currentTodos.mapi(itemView))
+                    e('ul#todo-list', (untyped currentTodos).map(itemView))
                 ]),
                 e('footer#footer', {"class":if (todoCount == 0) "hidden" else ""}, [
                     e('span#todo-count', [

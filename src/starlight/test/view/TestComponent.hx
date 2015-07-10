@@ -7,6 +7,8 @@ import starlight.view.Component;
 import starlight.view.Component.ElementUpdate;
 import starlight.view.Component.ElementAction.*;
 
+import starlight.view.macro.ElementBuilder.e;
+
 using Lambda;
 using starlight.view.VirtualElementTools;
 
@@ -25,7 +27,6 @@ class MockComponent extends Component {
 
 
 class TestComponent extends starlight.core.test.TestCase {
-    var e = VirtualElementTools.element;
     var nodeCount = 0;
 
     static function attrEquals(a:VirtualElementAttributes, b:VirtualElementAttributes):Bool {
@@ -49,6 +50,7 @@ class TestComponent extends starlight.core.test.TestCase {
             assertTrue(attrEquals(attrs, update.attrs));
     }
 
+#if js
     public function testElementCreation() {
         var next = e('h2', {"class": "test"}, "Header");
 
@@ -98,7 +100,8 @@ class TestComponent extends starlight.core.test.TestCase {
         assertEquals(next.id, nodeCount-1);
 
         assertEquals(1, pendingUpdates.length);
-        assertEquals('edit active', pendingUpdates[0].attrs.get('class'));
+        assertTrue(pendingUpdates[0].attrs.get('class').indexOf('edit') != -1);
+        assertTrue(pendingUpdates[0].attrs.get('class').indexOf('active') != -1);
 
         pendingUpdates = new Component().update([again], [next]);
         assertEquals(again.id, nodeCount-1);
@@ -229,6 +232,7 @@ class TestComponent extends starlight.core.test.TestCase {
         assertEquals(pendingUpdates[pendingUpdates.length-1].action, UpdateElement);
         assertTrue(attrEquals(cast next.attrs, cast pendingUpdates[pendingUpdates.length-1].attrs));
     }
+#end
 
     public function testRemoveEventHandlers() {
         var c = new Component(),

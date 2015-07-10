@@ -4,6 +4,7 @@ import js.Browser;
 
 import starlight.view.Component;
 import starlight.view.Renderer;
+import starlight.view.macro.ElementBuilder.e;
 
 class ViewModel extends Component {
     var title = "Starlight • Hello World";
@@ -13,7 +14,6 @@ class ViewModel extends Component {
         clickCount++;
     }
 
-    @:prerender
     override function template() {
         return [
             e('header.title', [if (clickCount > 0) '$title - clicked $clickCount times.' else title]),
