@@ -35,10 +35,6 @@ See the src/examples directory for examples on how Starlight can be used.
     - reapply the rewinded events until something looks different or we've returned to the current state
     - call it a "Time Warp" =)
 
-  - Modify JSGenerator to output ES6 modules
-
-    - integration with webpack
-
 ### View layer
 
 - element-motion tracking algorithm to make moving an element more efficient.
