@@ -80,24 +80,6 @@ class VirtualElementTools {
         return false;
     }
 
-
-    public static function buildClassString(obj:UnsafeMap):String {
-#if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (cast obj.get(key)) key].join(' ');
-#else
-        return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
-#end
-    }
-
-#if js
-    public static function buildChildren(result:Dynamic):Array<VirtualElement> {
-        // Calls to this function are automatically inserted with the view builder macro.
-        // In some cases, it is impossible to know at compile-type what some template values
-        // are.  In these cases, we punt to runtime.
-        return if (untyped __js__('Array').isArray(result)) result else [{tag: VirtualElementTools.TEXT_TAG, textValue: untyped result}];
-    }
-#end
-
     public inline static function parseSignature(signature:String):starlight.view.VirtualElement {
         var tagName = 'div';
         var attrs = new UnsafeMap();

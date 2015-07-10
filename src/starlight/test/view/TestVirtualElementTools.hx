@@ -122,9 +122,9 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
 
 #if js
     public function testBuildClassString() {
-        var a = VirtualElementTools.buildClassString(cast {on: true, off: false}),
-            b = VirtualElementTools.buildClassString(cast {on: false, off: true}),
-            c = VirtualElementTools.buildClassString(cast {on: true, off: true});
+        var a = Component.buildClassString(cast {on: true, off: false}),
+            b = Component.buildClassString(cast {on: false, off: true}),
+            c = Component.buildClassString(cast {on: true, off: true});
 
         assertEquals('on', a);
         assertEquals('off', b);
@@ -132,9 +132,9 @@ class TestVirtualElementTools extends haxe.unit.TestCase {
     }
 
     public function testChildren() {
-        var a = VirtualElementTools.buildChildren([{tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'}]),
-            b = VirtualElementTools.buildChildren('hi'),
-            c = VirtualElementTools.buildChildren(1);
+        var a = Component.buildChildren([{tag: VirtualElementTools.TEXT_TAG, textValue: 'hi'}]),
+            b = Component.buildChildren('hi'),
+            c = Component.buildChildren(1);
 
         assertEquals(Type.getClass(a), Array);
         assertEquals(a[0].tag, VirtualElementTools.TEXT_TAG);

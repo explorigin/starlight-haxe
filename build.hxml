@@ -24,7 +24,7 @@
 -cp src
 #-debug
 -D unittest
--D js-es5
+-D js_es5
 -dce full
 -lib mcover
 -lib msignal

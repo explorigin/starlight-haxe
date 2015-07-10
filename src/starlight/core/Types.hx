@@ -60,6 +60,16 @@ abstract DynamicAccess<T>(Dynamic<T>) from Dynamic<T> to Dynamic<T> {
         return cast Reflect.fields(this);
 #end
     }
+
+  @:from
+  static public function fromObject<T>(o:{}):DynamicAccess<T> {
+    return cast o;
+  }
+
+  @:to
+  public function toObject<T>():{} {
+    return cast this;
+  }
 }
 
 /**
