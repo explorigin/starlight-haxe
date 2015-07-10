@@ -70,7 +70,7 @@ class Renderer {
     }
 
     function captureUpdates(id:Int, updates: Array<ElementUpdate>) {
-        updateSets.push({id: id, updates: updates});
+        updateSets.unshift({id: id, updates: updates});
         FunctionTools.debounce(render);
     }
 
