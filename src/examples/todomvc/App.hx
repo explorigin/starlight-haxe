@@ -6,6 +6,7 @@ import starlight.view.Renderer;
 import starlight.view.Component;
 import starlight.router.HistoryManager;
 import starlight.view.macro.ElementBuilder.e;
+import starlight.view.WidgetSet.*;
 
 class View extends Component {
     static inline var ENTER_KEY = 13;
@@ -187,14 +188,14 @@ class View extends Component {
                 e('section#main', {"class":{hidden: todoCount == 0}}, [
                     e('input#toggle-all', {"type":"checkbox", onchange:onToggleAllChange}),
                     e('label', {"for":"toggle-all"}, "Mark all as complete"),
-                    e('ul#todo-list', (untyped currentTodos).map(itemView))
+                    list(currentTodos, itemView, {id:'todo-list'})
                 ]),
                 e('footer#footer', {"class":if (todoCount == 0) "hidden" else ""}, [
                     e('span#todo-count', [
                         e('strong', activeTodoCount),
                         if (activeTodoCount != 1) ' items left' else ' item left'
                     ]),
-                    e('ul#filters', filters.map(filterEntry)),
+                    list(filters, filterEntry, {id:'filters'}),
                     e('button#clear-completed',
                       {
                         "class":{hidden: completedTodos == 0},
