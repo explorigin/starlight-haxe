@@ -103,8 +103,8 @@ class ElementBuilder {
                     var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
                 case {expr: EConst(CIdent(s)), pos: ePos}:
-                    var expr = buildTextElement(paramArray[1]);
-                    childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
+                    matchChildren = false;
+                    childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[1]});
                 default:
                     var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: Context.currentPos()};
@@ -133,11 +133,15 @@ class ElementBuilder {
                     matchChildren = false;
                     childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
-                case {expr: _, pos: ePos}:
-                    var expr = buildTextElement(paramArray[2]);
+                case {expr: EConst(CString(s)), pos: ePos}:
+                    var expr = buildTextElement(paramArray[1]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
+                case {expr: EConst(CIdent(s)), pos: ePos}:
+                    matchChildren = false;
+                    childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[2]});
                 default:
-                    throw 'Invalid children: ${paramArray[2]}';
+                    matchChildren = false;
+                    childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[2]});
             }
         }
 
