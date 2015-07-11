@@ -206,6 +206,10 @@ class ElementBuilder {
                             }
                             classPos = oPos;
                         }
+                    case {expr: EConst(CString(clsString)), pos: oPos}: {
+                        classes = classes.concat(clsString.split(' '));
+                        classPos = oPos;
+                    }
                     default:
                         if (classes.length > 0) {
                             throw new SyntaxException("Cannot combine class statement with selector-specified classes.");
