@@ -85,11 +85,11 @@ class Component {
         }
     }
 
-    public static function buildClassString(obj:UnsafeMap):String {
+    public static function buildClassString(obj:{}):String {
 #if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (cast obj.get(key)) key].join(' ');
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (untyped obj[key]) key].join(' ');
 #else
-        return [for (key in obj.keys()) if (obj.get(key) == true) key].join(' ');
+        return [for (key in Reflect.fields(obj)) if (Reflect.field(obj, key) == true) key].join(' ');
 #end
     }
 
