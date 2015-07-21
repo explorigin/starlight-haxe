@@ -15,7 +15,8 @@ using tink.MacroApi;
 using haxe.macro.ExprTools;
 using starlight.view.VirtualElementTools;
 
-typedef ObjectFieldSet = Array<{field:String, expr:Expr}>;
+typedef ObjectField = {field:String, expr:Expr};
+typedef ObjectFieldSet = Array<ObjectField>;
 #end
 
 class ElementBuilder {
@@ -75,10 +76,10 @@ class ElementBuilder {
                     tagPos = tPos;
                     childrenExpr = {expr: EArrayDecl([]), pos: tPos};
                 default:
-                    throw new SyntaxException('Cannot preprocess elements that have a dynamic signature ("${paramArray[0]}").');
+                    Context.error('Cannot preprocess elements that have a dynamic signature ("${paramArray[0]}").', paramArray[0].pos);
             }
         } else {
-            throw new SyntaxException('Cannot preprocess elements that have no parameters');
+            Context.error('Cannot preprocess elements that have no parameters', Context.currentPos());
         }
 
         if (paramArray.length == 2) {
@@ -121,7 +122,7 @@ class ElementBuilder {
                 //  e('signature', {})
                 case {expr: EBlock(_), pos: _}:
                 default:
-                    throw 'Invalid attributes: ${paramArray[1]}';
+                    Context.error('Cannot run compile-time optimization on variable used for element attributes', paramArray[1].pos);
             }
 
             switch(paramArray[2]) {
@@ -151,7 +152,17 @@ class ElementBuilder {
         var attrObjectFields = new ObjectFieldSet();
         var classObjectFields = new ObjectFieldSet();
         var classes = new Array<String>();
+        var runtimeClasses = new Array<Dynamic>();
         var classPos = tagPos;
+
+        function pushTo(objFS: ObjectFieldSet, field:ObjectField) {
+            for (f in objFS) {
+                if (f.field == field.field) {
+                    Context.error('Duplicate object fields: "${f.field}".', field.expr.pos);
+                }
+            }
+            objFS.push(field);
+        }
 
         for (key in virtualElement.attrs.keys()) {
             var value = virtualElement.attrs.get(key);
@@ -173,10 +184,10 @@ class ElementBuilder {
                                     classes.push(cls);
                                 }
                             default:
-                                throw new TypeException('Don\'t know how to handle ${Type.getClassName(s)}');
+                                Context.error('Don\'t know how to handle ${Type.getClassName(s)}', classPos);
                         }
                     default:
-                        throw new TypeException('Don\'t know how to handle ${Type.typeof(value)}');
+                        Context.error('Don\'t know how to handle ${Type.getClassName(value)}', classPos);
                  }
             } else {
                 if (attributes.get(key) != null) {
@@ -199,10 +210,10 @@ class ElementBuilder {
                                     if (include == "true") {
                                         classes.push(field.field);
                                     } else if (include != "false") {
-                                        classObjectFields.push({field:field.field, expr:field.expr});
+                                        pushTo(classObjectFields, {field:field.field, expr:field.expr});
                                     }
                                 default:
-                                    classObjectFields.push({field:field.field, expr:field.expr});
+                                    pushTo(classObjectFields, {field:field.field, expr:field.expr});
                             }
                             classPos = oPos;
                         }
@@ -211,52 +222,62 @@ class ElementBuilder {
                         classPos = oPos;
                     }
                     default:
-                        if (classes.length > 0) {
-                            throw new SyntaxException("Cannot combine class statement with selector-specified classes.");
-                        }
                         // Here we assume that if it's not an object then it will result in a string.
-                        attrObjectFields.push(value);
+                        runtimeClasses.push(value.expr);
                 };
             } else if (key == "@$__hx__checked") {
                 switch(value.expr) {
                     case {expr: EConst(CIdent(checked)), pos: oPos}:
                         if (checked == "true") {
                             value.expr = {expr: EConst(CString("checked")), pos: oPos}
-                            attrObjectFields.push(value);
+                            pushTo(attrObjectFields, value);
                         }
                     default:
                         value.expr = macro if (${value.expr}) "checked" else null;
-                        attrObjectFields.push(value);
+                        pushTo(attrObjectFields, value);
                 }
             } else {
-                attrObjectFields.push(value);
+                pushTo(attrObjectFields, value);
             }
         }
 
-        if (classes.length > 0 || classObjectFields.length > 0) {
-            if (classObjectFields.length == 0) {
-                var classStr = Context.makeExpr(classes.join(' '), classPos);
-                attrObjectFields.push({
-                    field:'class',
-                    expr: classStr
-                });
-            } else {
-                for (cls in classes) {
-                    classObjectFields.push({
-                        field:cls,
-                        expr:macro true
+        if (classObjectFields.length > 0) {
+            var classExpr = {
+                expr: EObjectDecl(classObjectFields),
+                pos: classPos
+            }
+
+            if (classes.length == 0 && runtimeClasses.length == 0) {
+                pushTo(
+                    attrObjectFields,
+                    {
+                        field:'class',
+                        expr: macro starlight.view.Component.buildClassString(untyped ${classExpr})
                     });
-                }
-                var classExpr = {
-                    expr: EObjectDecl(classObjectFields),
-                    pos: classPos
+            } else {
+                var classStr = Context.makeExpr(classes.join(' '), classPos);
+                for (cls in runtimeClasses) {
+                    classStr = macro $classStr + ' ' + untyped $cls;
                 }
 
-                attrObjectFields.push({
-                    field:'class',
-                    expr: macro starlight.view.Component.buildClassString(untyped ${classExpr})
-                });
+                pushTo(
+                    attrObjectFields,
+                    {
+                        field:'class',
+                        expr: macro starlight.view.Component.buildClassString(untyped ${classExpr}, $classStr)
+                    });
             }
+        } else if (classes.length > 0 || runtimeClasses.length > 0) {
+            var classStr = Context.makeExpr(classes.join(' '), classPos);
+
+            for (cls in runtimeClasses) {
+                classStr = macro $classStr + ' ' + untyped $cls;
+            }
+
+            pushTo(attrObjectFields, {
+                field:'class',
+                expr: classStr
+            });
         }
 
         var attrExpr = {expr: EObjectDecl(attrObjectFields), pos: classPos};

@@ -85,11 +85,11 @@ class Component {
         }
     }
 
-    public static function buildClassString(obj:{}):String {
+    public static function buildClassString(obj:{}, varString=''):String {
 #if js
-        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (untyped obj[key]) key].join(' ');
+        return [for (key in ((untyped Object).keys(obj):Array<String>)) if (untyped obj[key]) key].concat([varString]).join(' ');
 #else
-        return [for (key in Reflect.fields(obj)) if (Reflect.field(obj, key) == true) key].join(' ');
+        return [for (key in Reflect.fields(obj)) if (Reflect.field(obj, key) == true) key].concat([varString]).join(' ');
 #end
     }
 
