@@ -255,7 +255,7 @@ class ElementBuilder {
                         expr: macro starlight.view.Component.buildClassString(untyped ${classExpr})
                     });
             } else {
-                var classStr = Context.makeExpr(classes.join(' '), classPos);
+                var classStr = Context.makeExpr(' ' + classes.join(' '), classPos);
                 for (cls in runtimeClasses) {
                     classStr = macro $classStr + ' ' + untyped $cls;
                 }
@@ -264,7 +264,7 @@ class ElementBuilder {
                     attrObjectFields,
                     {
                         field:'class',
-                        expr: macro starlight.view.Component.buildClassString(untyped ${classExpr}, $classStr)
+                        expr: macro starlight.view.Component.buildClassString(untyped ${classExpr}) + $classStr
                     });
             }
         } else if (classes.length > 0 || runtimeClasses.length > 0) {
