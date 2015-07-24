@@ -2,7 +2,6 @@
 # the haxe compiler.
 
 -cp ../
--cp ../../
 
 # Create output that takes advantage of browsers that implement ECMAScript 5
 -D js_es5
@@ -20,8 +19,7 @@
 -main todomvc.App
 
 # Include some used external libraries
--lib msignal
--lib tink_macro
+-lib starlight
 -lib es6-coretypes
 
 # create a Javascript file at js/app.js

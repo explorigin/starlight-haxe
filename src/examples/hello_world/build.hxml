@@ -2,7 +2,6 @@
 # the haxe compiler.
 
 -cp ../
--cp ../../
 
 # Create output that takes advantage of browsers that implement ECMAScript 5
 -D js-es5
@@ -21,8 +20,7 @@
 -main hello_world.App
 
 # Include some used external libraries
--lib msignal
--lib tink_macro
+-lib starlight
 
 # create a Javascript file at js/app.js
 -js js/app.js
