@@ -9,7 +9,8 @@ import starlight.view.Component.ElementUpdate;
 import starlight.core.Types.UnsafeMap;
 import starlight.core.Types.IntMap;
 import starlight.core.Types.ElementType;
-import starlight.core.FunctionTools;
+
+
 
 using VirtualElementTools.VirtualElementTools;
 
@@ -59,8 +60,18 @@ class Renderer {
         var id = assignmentID++;
         componentMap.set(id, c);
         elementMap.set(id, root);
-
         c.updatesAvailable.add(captureUpdates.bind(id, _));
+    }
+
+    public static inline function debounce(fun:Void->Void) {
+        #if (js && !unittest)
+            if ((untyped fun).timeout) {
+                return;
+            }
+            (untyped fun).timeout = untyped __js__('requestAnimationFrame(function() { delete fun.timeout; fun() })');
+        #else
+            fun();
+        #end
     }
 
     public function start() {
@@ -70,8 +81,10 @@ class Renderer {
     }
 
     function captureUpdates(id:Int, updates: Array<ElementUpdate>) {
-        updateSets.unshift({id: id, updates: updates});
-        FunctionTools.debounce(render);
+        if (updates != null && updates.length > 0) {
+            updateSets.unshift({id: id, updates: updates});
+            debounce(render);
+        }
     }
 
     function render() {

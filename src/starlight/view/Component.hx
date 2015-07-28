@@ -9,7 +9,6 @@ import starlight.view.VirtualElementTools;
 import starlight.core.Types.UnsafeMap;
 import starlight.core.Types.IntMap;
 import starlight.core.Exceptions.AbstractionException;
-import starlight.core.FunctionTools;
 
 using VirtualElementTools.VirtualElementTools;
 
@@ -47,6 +46,17 @@ class Component {
 
     public function new() {};
 
+    public static inline function debounce(fun:Void->Void) {
+        #if (js && !unittest)
+            if ((untyped fun).timeout) {
+                return;
+            }
+            (untyped fun).timeout = untyped __js__('setTimeout(function() { delete fun.timeout; fun(); }, 0)');
+        #else
+            fun();
+        #end
+    }
+
     public function checkState() {
         var nextState = template();
         var updates = update(nextState, currentState);
@@ -80,7 +90,7 @@ class Component {
             #end
 
             if (eventHandler(evt) != false) {
-                FunctionTools.debounce(checkState);
+                debounce(checkState);
             }
         }
     }
