@@ -201,11 +201,11 @@ class Renderer {
                 trace(elementUpdate);
             #end
 
-            switch(elementUpdate.action) {
-                case AddElement: addElement(elementUpdate, assignment.id);
-                case UpdateElement: updateElement(elementUpdate, assignment.id);
-                case RemoveElement: removeElement(elementUpdate);
-                case MoveElement: moveElement(elementUpdate);
+            switch(js.Symbol.keyFor(elementUpdate.action)) {
+                case 'AddElement': addElement(elementUpdate, assignment.id);
+                case 'UpdateElement': updateElement(elementUpdate, assignment.id);
+                case 'RemoveElement': removeElement(elementUpdate);
+                case 'MoveElement': moveElement(elementUpdate);
             }
         }
 

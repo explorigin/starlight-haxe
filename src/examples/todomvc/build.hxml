@@ -20,7 +20,6 @@
 
 # Include some used external libraries
 -lib starlight
--lib es6-coretypes
 
 # create a Javascript file at js/app.js
 -js js/app.js

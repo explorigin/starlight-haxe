@@ -2,25 +2,19 @@ package starlight.view;
 
 import msignal.Signal;
 
+import starlight.core.Types.UnsafeMap;
+import starlight.core.Types.IntMap;
+import starlight.core.Types.Symbol;
+import starlight.core.Exceptions.AbstractionException;
 import starlight.view.VirtualElement;
 import starlight.view.Renderer.PseudoEvent;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElementTools;
-import starlight.core.Types.UnsafeMap;
-import starlight.core.Types.IntMap;
-import starlight.core.Exceptions.AbstractionException;
 
 using VirtualElementTools.VirtualElementTools;
 
-enum ElementAction {
-    RemoveElement;
-    AddElement;
-    UpdateElement;
-    MoveElement;
-}
-
 typedef ElementUpdate = {
-    action:ElementAction,
+    action:Symbol,
     elementId:Int,
     ?tag:String,
     ?attrs:VirtualElementAttributes,
@@ -170,7 +164,7 @@ class Component {
                 currentElementId = nodeCounter++;
 
                 updates.push({
-                    action:AddElement,
+                    action:Symbol.forKey('AddElement'),
                     elementId:currentElementId,
                     tag:next.tag,
                     attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
@@ -184,7 +178,7 @@ class Component {
             } else if (next == null) {
                 // If there is nothing there, just remove it.
                 updates.push({
-                    action:RemoveElement,
+                    action:Symbol.forKey('RemoveElement'),
                     elementId:current.id
                 });
                 removeEventHandlers(current.id);
@@ -193,13 +187,13 @@ class Component {
                 currentElementId = nodeCounter++;
 
                 updates.push({
-                    action:RemoveElement,
+                    action:Symbol.forKey('RemoveElement'),
                     elementId:current.id
                 });
                 removeEventHandlers(current.id);
 
                 updates.push({
-                    action:AddElement,
+                    action:Symbol.forKey('AddElement'),
                     elementId:currentElementId,
                     tag:next.tag,
                     attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
@@ -212,7 +206,7 @@ class Component {
 
             } else if (next.textValue != current.textValue) {
                 updates.push({
-                    action:UpdateElement,
+                    action:Symbol.forKey('UpdateElement'),
                     elementId:current.id,
                     attrs:cast {textContent: next.textValue}
                 });
@@ -245,7 +239,7 @@ class Component {
                 if (!attrsAreEqual) {
                     // Update the current element
                     updates.push({
-                        action:UpdateElement,
+                        action:Symbol.forKey('UpdateElement'),
                         elementId:current.id,
                         attrs:attrDiff
                     });
@@ -268,7 +262,7 @@ class Component {
                 var selectSecondarySet = new VirtualElementAttributes();
                 selectSecondarySet.set('value', next.attrs.get('value'));
                 updates.push({
-                    action:UpdateElement,
+                    action:Symbol.forKey('UpdateElement'),
                     elementId:currentElementId,
                     attrs: selectSecondarySet
                 });

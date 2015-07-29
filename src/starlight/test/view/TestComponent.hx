@@ -1,11 +1,11 @@
 package starlight.test.view;
 
 import starlight.core.Types.ElementType;
+import starlight.core.Types.Symbol;
 import starlight.view.VirtualElement.VirtualElement;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.Component;
 import starlight.view.Component.ElementUpdate;
-import starlight.view.Component.ElementAction.*;
 
 import starlight.view.macro.ElementBuilder.e;
 
@@ -213,7 +213,7 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = c.update([next], [current]);
 
         assertEquals(1, pendingUpdates.length);
-        assertEquals(UpdateElement, pendingUpdates[0].action);
+        assertEquals(Symbol.forKey('UpdateElement'), pendingUpdates[0].action);
         assertEquals('bye', Reflect.field(pendingUpdates[0].attrs, 'textContent'));
     }
 
@@ -229,7 +229,7 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], []);
 
         assertEquals(6, pendingUpdates.length);
-        assertEquals(pendingUpdates[pendingUpdates.length-1].action, UpdateElement);
+        assertEquals(pendingUpdates[pendingUpdates.length-1].action, Symbol.forKey('UpdateElement'));
         assertTrue(attrEquals(cast next.attrs, cast pendingUpdates[pendingUpdates.length-1].attrs));
     }
 #end
@@ -293,7 +293,7 @@ class TestComponent extends starlight.core.test.TestCase {
         assertEquals(0, c.currentState.length);
         c.updateReturnValue = [{
             elementId: 1,
-            action: AddElement
+            action: Symbol.forKey('AddElement')
         }];
         c.checkState();
         assertEquals(1, c.currentState.length);

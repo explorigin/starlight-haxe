@@ -3,12 +3,12 @@ package starlight.test.view;
 import js.Browser;
 
 import starlight.core.Types.ElementType;
+import starlight.core.Types.Symbol;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.Renderer.Renderer;
 import starlight.view.Renderer.PseudoEvent;
 import starlight.view.Renderer.UpdateSet;
 import starlight.view.Component.ElementUpdate;
-import starlight.view.Component.ElementAction.*;
 
 #if js
 class MockedRenderer extends Renderer {
@@ -61,7 +61,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         var updateset:UpdateSet = {
             updates: [{
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:1,
                 tag:'h1',
                 attrs:attrs,
@@ -70,7 +70,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:2,
                 tag:'#text',
                 attrs:new VirtualElementAttributes(),
@@ -79,7 +79,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:3,
                 tag:'input',
                 attrs:inputAttrs,
@@ -106,7 +106,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         updateset = {
             updates: [{
-                action:RemoveElement,
+                action:Symbol.forKey('RemoveElement'),
                 elementId:1
             }],
             id: 0
@@ -128,7 +128,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         updateset = {
             updates: [{
-                action:UpdateElement,
+                action:Symbol.forKey('UpdateElement'),
                 elementId:1,
                 attrs:attrs
             }],
@@ -159,7 +159,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
         checkParent('.form', null, bodyChildren.indexOf(Browser.document.querySelector('.form')));
         updateset = {
             updates: [{
-                action:MoveElement,
+                action:Symbol.forKey('MoveElement'),
                 elementId:3,
                 newParent:1,
                 newIndex:1
@@ -171,7 +171,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
         checkParent('.form', 1, 1);
         updateset = {
             updates: [{
-                action:MoveElement,
+                action:Symbol.forKey('MoveElement'),
                 elementId:3,
                 newParent:1,
                 newIndex:0
@@ -195,7 +195,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         updateset = {
             updates: [{
-                action:UpdateElement,
+                action:Symbol.forKey('UpdateElement'),
                 elementId:3,
                 attrs:inputAttrs
             }],
@@ -218,7 +218,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         updateset = {
             updates: [{
-                action:UpdateElement,
+                action:Symbol.forKey('UpdateElement'),
                 elementId:3,
                 attrs:inputAttrs
             }],
@@ -242,7 +242,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         var updateset = {
             updates:[{
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:1,
                 tag:'h1',
                 attrs:attrs,
@@ -251,7 +251,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:2,
                 tag:'#text',
                 attrs:new VirtualElementAttributes(),
@@ -260,7 +260,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:3,
                 tag:'input',
                 attrs:inputAttrs,
@@ -292,7 +292,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
 
         updateset = {
             updates: [{
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:4,
                 tag:'select',
                 attrs:new VirtualElementAttributes(),
@@ -301,7 +301,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:1
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:5,
                 tag:'option',
                 attrs:new VirtualElementAttributes(),
@@ -310,7 +310,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:6,
                 tag:'#text',
                 attrs:new VirtualElementAttributes(),
@@ -319,7 +319,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:7,
                 tag:'option',
                 attrs:new VirtualElementAttributes(),
@@ -328,7 +328,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:AddElement,
+                action:Symbol.forKey('AddElement'),
                 elementId:8,
                 tag:'#text',
                 attrs:new VirtualElementAttributes(),
@@ -337,7 +337,7 @@ class TestRenderer extends starlight.core.test.FrontendTestCase {
                 newIndex:0
             },
             {
-                action:UpdateElement,
+                action:Symbol.forKey('UpdateElement'),
                 elementId:4,
                 attrs:attrs
             }],
