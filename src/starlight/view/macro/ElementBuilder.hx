@@ -135,7 +135,7 @@ class ElementBuilder {
                     childrenExpr = macro starlight.view.Component.buildChildren(untyped ${paramArray[2]});
                 //  e('signature', ?, ?)
                 case {expr: EConst(CString(s)), pos: ePos}:
-                    var expr = buildTextElement(paramArray[1]);
+                    var expr = buildTextElement(paramArray[2]);
                     childrenExpr = {expr: EArrayDecl([expr]), pos: ePos};
                 case {expr: EConst(CIdent(s)), pos: ePos}:
                     matchChildren = false;
