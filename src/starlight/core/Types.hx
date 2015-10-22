@@ -9,33 +9,9 @@ package starlight.core;
 #if js
 typedef UnsafeMap = DynamicAccess<Dynamic>;
 typedef IntMap = DynamicIntAccess<Dynamic>;
-typedef Symbol = js.Symbol;
 #else
 typedef UnsafeMap = haxe.ds.StringMap<Dynamic>;
 typedef IntMap = haxe.ds.IntMap<Dynamic>;
-
-class Symbol {
-    private static var _strings = new haxe.ds.StringMap<Symbol>();
-    private var description: Null<String>;
-
-    public function new(description:Null<String>) {
-        this.description = description;
-    }
-
-    public static function keyFor(s:Symbol): Null<String> {
-        return s.description;
-    }
-
-    public static function forKey(description:String): Symbol {
-        if (_strings.exists(description)) {
-            return _strings.get(description);
-        }
-        var s = new Symbol(description);
-        _strings.set(description, s);
-        return s;
-    }
-}
-
 #end
 
 /*

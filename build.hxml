@@ -29,7 +29,6 @@
 -lib mcover
 -lib msignal
 -lib tink_macro
--lib es6-externs
 --macro mcover.MCover.coverage(['starlight'], ['src'], ['starlight.core.test', 'starlight.test'])
 -main starlight.test.TestRunner
 -js test.js

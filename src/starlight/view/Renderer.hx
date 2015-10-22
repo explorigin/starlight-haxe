@@ -1,16 +1,15 @@
 package starlight.view;
 
+import haxe.ds.IntMap;
+import haxe.ds.StringMap;
+
 import starlight.view.VirtualElement;
 import starlight.view.VirtualElement.VirtualElementChildren;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.VirtualElementTools;
 import starlight.view.Component;
 import starlight.view.Component.ElementUpdate;
-import starlight.core.Types.UnsafeMap;
-import starlight.core.Types.IntMap;
 import starlight.core.Types.ElementType;
-
-
 
 using VirtualElementTools.VirtualElementTools;
 
@@ -41,10 +40,10 @@ class Renderer {
     static var elementPropertyAttributes = ['list', 'style', 'form', 'type', 'width', 'height'];
     static var assignmentID = 0;
 
-    var componentMap = new IntMap();
-    var elementMap = new IntMap();
-    var postProcessing = new UnsafeMap();
-    var elementCache = new IntMap();
+    public var componentMap = new IntMap<Component>();
+    var elementMap = new IntMap<ElementType>();
+    var postProcessing = new StringMap<Int>();
+    var elementCache = new IntMap<ElementType>();
     var updateSets = new Array<UpdateSet>();
 
     public function new(?assignments:Array<ComponentAssignment>) {
@@ -65,10 +64,12 @@ class Renderer {
 
     public static inline function debounce(fun:Void->Void) {
         #if (js && !unittest)
-            if ((untyped fun).timeout) {
-                return;
+            if ((untyped fun).timeout == null) {
+                (untyped fun).timeout = (untyped window).requestAnimationFrame(
+                    function() { untyped __js__('delete fun').timeout; fun(); },
+                    0
+                );
             }
-            (untyped fun).timeout = untyped __js__('requestAnimationFrame(function() { delete fun.timeout; fun() })');
         #else
             fun();
         #end
@@ -201,7 +202,7 @@ class Renderer {
                 trace(elementUpdate);
             #end
 
-            switch(js.Symbol.keyFor(elementUpdate.action)) {
+            switch(elementUpdate.action) {
                 case 'AddElement': addElement(elementUpdate, assignment.id);
                 case 'UpdateElement': updateElement(elementUpdate, assignment.id);
                 case 'RemoveElement': removeElement(elementUpdate);

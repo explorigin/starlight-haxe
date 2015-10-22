@@ -11,7 +11,6 @@
     "dependencies": {
         "tink_macro": "0.6.4",
         "mcover": "2.1.1",
-        "msignal": "1.2.2",
-        "es6-externs": "~1.0.0"
+        "msignal": "1.2.2"
     }
 }

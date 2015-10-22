@@ -1,7 +1,6 @@
 package starlight.test.view;
 
 import starlight.core.Types.ElementType;
-import starlight.core.Types.Symbol;
 import starlight.view.VirtualElement.VirtualElement;
 import starlight.view.VirtualElement.VirtualElementAttributes;
 import starlight.view.Component;
@@ -213,7 +212,7 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = c.update([next], [current]);
 
         assertEquals(1, pendingUpdates.length);
-        assertEquals(Symbol.forKey('UpdateElement'), pendingUpdates[0].action);
+        assertEquals('UpdateElement', pendingUpdates[0].action);
         assertEquals('bye', Reflect.field(pendingUpdates[0].attrs, 'textContent'));
     }
 
@@ -229,23 +228,23 @@ class TestComponent extends starlight.core.test.TestCase {
         var pendingUpdates = new Component().update([next], []);
 
         assertEquals(6, pendingUpdates.length);
-        assertEquals(pendingUpdates[pendingUpdates.length-1].action, Symbol.forKey('UpdateElement'));
+        assertEquals(pendingUpdates[pendingUpdates.length-1].action, 'UpdateElement');
         assertTrue(attrEquals(cast next.attrs, cast pendingUpdates[pendingUpdates.length-1].attrs));
     }
 #end
 
     public function testRemoveEventHandlers() {
         var c = new Component(),
-            attrs = new VirtualElementAttributes();
-
-        attrs.set('onchange', 1);
-        attrs.set('onkeyup', 2);
+            attrs = [
+                'onchange' => 1,
+                'onkeyup' => 2
+            ];
 
         c.removeEventHandlers(1);  // Assert no Exception
 
         c.existingEventMap.set(1, attrs);
-        c.events.set(1, function() {});
-        c.events.set(2, function() {});
+        c.events.set(1, cast function() {});
+        c.events.set(2, cast function() {});
 
         assertEquals(2, [for (key in c.events.keys()) 1].length);
 
@@ -293,7 +292,7 @@ class TestComponent extends starlight.core.test.TestCase {
         assertEquals(0, c.currentState.length);
         c.updateReturnValue = [{
             elementId: 1,
-            action: Symbol.forKey('AddElement')
+            action: 'AddElement'
         }];
         c.checkState();
         assertEquals(1, c.currentState.length);
@@ -313,7 +312,7 @@ class TestComponent extends starlight.core.test.TestCase {
             target: {value: 'test_value', checked: null}
         });
 
-        c.events.set(2, function(evt) {
+        c.events.set(2, cast function(evt) {
             assertEquals(2, evt.id);
             assertEquals('test2', evt.type);
         });

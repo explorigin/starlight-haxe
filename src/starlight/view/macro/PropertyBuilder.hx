@@ -5,7 +5,6 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import haxe.macro.Type as MacroType;
 
-import starlight.core.Types.UnsafeMap;
 import starlight.core.Exceptions;
 import starlight.view.VirtualElement;
 import starlight.view.VirtualElementTools;

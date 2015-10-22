@@ -1,10 +1,10 @@
 package starlight.view;
 
+import haxe.ds.IntMap;
+import haxe.ds.StringMap;
+
 import msignal.Signal;
 
-import starlight.core.Types.UnsafeMap;
-import starlight.core.Types.IntMap;
-import starlight.core.Types.Symbol;
 import starlight.core.Exceptions.AbstractionException;
 import starlight.view.VirtualElement;
 import starlight.view.Renderer.PseudoEvent;
@@ -14,7 +14,7 @@ import starlight.view.VirtualElementTools;
 using VirtualElementTools.VirtualElementTools;
 
 typedef ElementUpdate = {
-    action:Symbol,
+    action:String,
     elementId:Int,
     ?tag:String,
     ?attrs:VirtualElementAttributes,
@@ -32,10 +32,10 @@ class Component {
     static var nodeCounter = 0;
     static var eventCounter = 0;
 
-    var events = new IntMap();
-    var existingEventMap = new IntMap();
-    public var elementCache = new IntMap();
-    public var currentState = new Array<VirtualElement>();
+    var events = new IntMap<PseudoEvent->Bool>();
+    var existingEventMap = new IntMap<StringMap<Int> >();
+    var currentState = new Array<VirtualElement>();
+
     public var updatesAvailable(default, null) = new Signal1<Array<ElementUpdate> >();
 
     public function new() {};
@@ -69,7 +69,7 @@ class Component {
                 var elementId:Int;
 
                 for (eventElementId in existingEventMap.keys()) {
-                    var elementEventMap:UnsafeMap = existingEventMap.get(eventElementId);
+                    var elementEventMap:StringMap<Int> = existingEventMap.get(eventElementId);
                     for (eventName in elementEventMap.keys()) {
                         if (elementEventMap.get(eventName) == evt.id) {
                             elementId = eventElementId;
@@ -117,9 +117,9 @@ class Component {
         for (key in attrs.keys()) {
             if (key.indexOf('on') == 0) {
                 if (!existingEventMap.exists(elementId)) {
-                    existingEventMap.set(elementId, new UnsafeMap());
+                    existingEventMap.set(elementId, new StringMap<Int>());
                 }
-                var elementRecord:UnsafeMap = existingEventMap.get(elementId);
+                var elementRecord:StringMap<Int> = existingEventMap.get(elementId);
                 var eventId:Int = elementRecord.get(key);
                 if (eventId == null) {
                     eventId = eventCounter++;
@@ -134,7 +134,7 @@ class Component {
     }
 
     private function removeEventHandlers(elementId:Int) {
-        var elementRecord:UnsafeMap = existingEventMap.get(elementId);
+        var elementRecord:StringMap<Int> = existingEventMap.get(elementId);
         if (elementRecord == null) {
             return;
         }
@@ -164,7 +164,7 @@ class Component {
                 currentElementId = nodeCounter++;
 
                 updates.push({
-                    action:Symbol.forKey('AddElement'),
+                    action:'AddElement',
                     elementId:currentElementId,
                     tag:next.tag,
                     attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
@@ -178,7 +178,7 @@ class Component {
             } else if (next == null) {
                 // If there is nothing there, just remove it.
                 updates.push({
-                    action:Symbol.forKey('RemoveElement'),
+                    action:'RemoveElement',
                     elementId:current.id
                 });
                 removeEventHandlers(current.id);
@@ -187,13 +187,13 @@ class Component {
                 currentElementId = nodeCounter++;
 
                 updates.push({
-                    action:Symbol.forKey('RemoveElement'),
+                    action:'RemoveElement',
                     elementId:current.id
                 });
                 removeEventHandlers(current.id);
 
                 updates.push({
-                    action:Symbol.forKey('AddElement'),
+                    action:'AddElement',
                     elementId:currentElementId,
                     tag:next.tag,
                     attrs:if (next.attrs != null) replaceEventHandlers(next.attrs, currentElementId) else cast {},
@@ -206,7 +206,7 @@ class Component {
 
             } else if (next.textValue != current.textValue) {
                 updates.push({
-                    action:Symbol.forKey('UpdateElement'),
+                    action:'UpdateElement',
                     elementId:current.id,
                     attrs:cast {textContent: next.textValue}
                 });
@@ -239,7 +239,7 @@ class Component {
                 if (!attrsAreEqual) {
                     // Update the current element
                     updates.push({
-                        action:Symbol.forKey('UpdateElement'),
+                        action:'UpdateElement',
                         elementId:current.id,
                         attrs:attrDiff
                     });
@@ -262,7 +262,7 @@ class Component {
                 var selectSecondarySet = new VirtualElementAttributes();
                 selectSecondarySet.set('value', next.attrs.get('value'));
                 updates.push({
-                    action:Symbol.forKey('UpdateElement'),
+                    action:'UpdateElement',
                     elementId:currentElementId,
                     attrs: selectSecondarySet
                 });
